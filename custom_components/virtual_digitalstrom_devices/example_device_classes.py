@@ -3,12 +3,17 @@
 
 This script shows how to use the device_classes module to work with
 digitalSTROM device classifications.
+
+NOTE: This is a standalone example script that can be run directly without
+installing the package. In production code, you would import from the installed
+package instead: from custom_components.virtual_digitalstrom_devices import ...
 """
 
 import sys
 from pathlib import Path
 
-# Add the custom_components directory to the path
+# Add the current directory to the path for standalone execution
+# This is only for demonstration purposes; in production, import from the installed package
 sys.path.insert(0, str(Path(__file__).parent))
 
 from device_classes import (

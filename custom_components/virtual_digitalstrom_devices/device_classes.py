@@ -60,7 +60,7 @@ class DeviceClass(NamedTuple):
     group_id: int
     name: str
     color: DSColor
-    applications: list[str]
+    applications: tuple[str, ...]
     primary_channel: DSPrimaryChannel | None
     description: str
 
@@ -71,11 +71,11 @@ DEVICE_CLASSES = {
         group_id=1,
         name="Lights",
         color=DSColor.YELLOW,
-        applications=[
+        applications=(
             "Room lights",
             "Garden lights",
             "Building illuminations",
-        ],
+        ),
         primary_channel=DSPrimaryChannel.BRIGHTNESS,
         description="Lighting devices including room lights, garden lights, and building illuminations",
     ),
@@ -83,12 +83,12 @@ DEVICE_CLASSES = {
         group_id=2,
         name="Blinds",
         color=DSColor.GRAY,
-        applications=[
+        applications=(
             "Blinds",
             "Shades",
             "Awnings",
             "Curtains",
-        ],
+        ),
         primary_channel=DSPrimaryChannel.SHADE_POSITION_OUTSIDE,
         description="Shade and blind control devices",
     ),
@@ -96,7 +96,7 @@ DEVICE_CLASSES = {
         group_id=3,
         name="Heating",
         color=DSColor.BLUE,
-        applications=["Heating"],
+        applications=("Heating",),
         primary_channel=DSPrimaryChannel.HEATING_POWER,
         description="Heating devices and controls",
     ),
@@ -104,10 +104,10 @@ DEVICE_CLASSES = {
         group_id=4,
         name="Audio",
         color=DSColor.CYAN,
-        applications=[
+        applications=(
             "Music",
             "Radio",
-        ],
+        ),
         primary_channel=DSPrimaryChannel.AUDIO_VOLUME,
         description="Audio playback devices",
     ),
@@ -115,10 +115,12 @@ DEVICE_CLASSES = {
         group_id=5,
         name="Video",
         color=DSColor.MAGENTA,
-        applications=[
+        applications=(
             "TV",
             "Video",
-        ],
+        ),
+        # Note: Video devices use AUDIO_VOLUME as primary channel per digitalSTROM spec
+        # since the common control for both audio and video devices is volume
         primary_channel=DSPrimaryChannel.AUDIO_VOLUME,
         description="Video and TV devices",
     ),
@@ -126,7 +128,7 @@ DEVICE_CLASSES = {
         group_id=8,
         name="Joker",
         color=DSColor.BLACK,
-        applications=["Configurable"],
+        applications=("Configurable",),
         primary_channel=None,  # No primary channel - configurable
         description="Configurable devices that can be assigned to different functions",
     ),
@@ -134,7 +136,7 @@ DEVICE_CLASSES = {
         group_id=9,
         name="Cooling",
         color=DSColor.BLUE,
-        applications=["Cooling"],
+        applications=("Cooling",),
         primary_channel=DSPrimaryChannel.COOLING_POWER,
         description="Cooling and air conditioning devices",
     ),
@@ -142,7 +144,7 @@ DEVICE_CLASSES = {
         group_id=10,
         name="Ventilation",
         color=DSColor.BLUE,
-        applications=["Ventilation"],
+        applications=("Ventilation",),
         primary_channel=DSPrimaryChannel.AIRFLOW_INTENSITY,
         description="Ventilation and air circulation devices",
     ),
@@ -150,7 +152,7 @@ DEVICE_CLASSES = {
         group_id=11,
         name="Window",
         color=DSColor.BLUE,
-        applications=["Windows", "Window control"],
+        applications=("Windows", "Window control"),
         primary_channel=None,  # Windows are typically binary (open/closed)
         description="Window control and monitoring devices",
     ),
@@ -158,10 +160,10 @@ DEVICE_CLASSES = {
         group_id=12,
         name="Recirculation",
         color=DSColor.BLUE,
-        applications=[
+        applications=(
             "Ceiling fan",
             "Fan coil units",
-        ],
+        ),
         primary_channel=DSPrimaryChannel.AIRFLOW_INTENSITY,
         description="Recirculation fans and fan coil units",
     ),
@@ -169,7 +171,7 @@ DEVICE_CLASSES = {
         group_id=48,
         name="Temperature Control",
         color=DSColor.BLUE,
-        applications=["Single room temperature control"],
+        applications=("Single room temperature control",),
         primary_channel=None,  # Temperature control is special
         description="Single room temperature control devices",
     ),
@@ -177,7 +179,7 @@ DEVICE_CLASSES = {
         group_id=64,
         name="Apartment Ventilation",
         color=DSColor.BLUE,
-        applications=["Ventilation system"],
+        applications=("Ventilation system",),
         primary_channel=DSPrimaryChannel.AIRFLOW_INTENSITY,
         description="Apartment-wide ventilation system",
     ),
@@ -188,23 +190,23 @@ DEVICE_CLASSES = {
 ADDITIONAL_COLOR_GROUPS = {
     DSColor.RED: {
         "name": "Security",
-        "applications": ["Alarms", "Fire", "Panic"],
+        "applications": ("Alarms", "Fire", "Panic"),
         "description": "Security-related functions and alarms",
     },
     DSColor.GREEN: {
         "name": "Access",
-        "applications": ["Doors", "Door bells", "Access control"],
+        "applications": ("Doors", "Door bells", "Access control"),
         "description": "Access control and door management",
     },
     DSColor.WHITE: {
         "name": "Single Devices",
-        "applications": [
+        "applications": (
             "Refrigerator",
             "Vacuum cleaner",
             "Coffee maker",
             "Water kettle",
             "Cooker hood",
-        ],
+        ),
         "description": "Single devices that don't fit into standard application categories",
     },
 }
