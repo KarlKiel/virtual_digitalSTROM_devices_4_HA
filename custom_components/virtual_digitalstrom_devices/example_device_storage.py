@@ -3,17 +3,24 @@
 
 This example demonstrates how to use the VirtualDevice and DeviceStorage
 classes to manage digitalSTROM device configurations.
+
+NOTE: To run this example standalone, execute it from within the integration directory:
+cd custom_components/virtual_digitalstrom_devices && python3 example_device_storage.py
 """
 
 import sys
 from pathlib import Path
 
-# Add the current directory to the path for standalone execution
-sys.path.insert(0, str(Path(__file__).parent))
+# For standalone execution, ensure parent package is importable
+if __name__ == "__main__":
+    # Add parent directory to path to allow relative imports
+    parent_dir = Path(__file__).parent.parent
+    if str(parent_dir) not in sys.path:
+        sys.path.insert(0, str(parent_dir))
 
-from virtual_device import VirtualDevice
-from device_storage import DeviceStorage
-from device_classes import DSGroupID
+from virtual_digitalstrom_devices.virtual_device import VirtualDevice
+from virtual_digitalstrom_devices.device_storage import DeviceStorage
+from virtual_digitalstrom_devices.device_classes import DSGroupID
 
 
 def main():

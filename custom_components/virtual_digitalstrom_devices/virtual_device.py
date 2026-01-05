@@ -39,10 +39,15 @@ class VirtualDevice:
         Returns:
             Dictionary representation of the device
         """
+        from enum import Enum
+        
+        # Convert enum to int if group_id is an Enum
+        group_id_value = self.group_id.value if isinstance(self.group_id, Enum) else self.group_id
+        
         return {
             "device_id": self.device_id,
             "name": self.name,
-            "group_id": int(self.group_id) if hasattr(self.group_id, 'value') else self.group_id,
+            "group_id": int(group_id_value),
             "ha_entity_id": self.ha_entity_id,
             "dsid": self.dsid,
             "zone_id": self.zone_id,

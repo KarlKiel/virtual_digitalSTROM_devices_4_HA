@@ -8,14 +8,22 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import yaml
 
-try:
+# Handle both package and standalone imports
+# This allows the module to work both when installed as a Home Assistant integration
+# and when used in standalone examples/tests
+if TYPE_CHECKING:
     from .virtual_device import VirtualDevice
-except ImportError:
-    from virtual_device import VirtualDevice
+else:
+    try:
+        from .virtual_device import VirtualDevice
+    except ImportError:
+        # Standalone execution - use absolute import
+        import virtual_device  # type: ignore
+        VirtualDevice = virtual_device.VirtualDevice  # type: ignore
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,8 +63,11 @@ class DeviceStorage:
             else:
                 _LOGGER.debug("Storage file does not exist, starting with empty device list")
                 self._devices = {}
-        except Exception as e:
-            _LOGGER.error("Error loading devices from %s: %s", self.storage_path, e)
+        except (yaml.YAMLError, ValueError, KeyError) as e:
+            _LOGGER.error("Error parsing device data from %s: %s", self.storage_path, e)
+            self._devices = {}
+        except (FileNotFoundError, PermissionError, OSError) as e:
+            _LOGGER.error("Error accessing storage file %s: %s", self.storage_path, e)
             self._devices = {}
     
     def _save(self) -> None:
@@ -75,8 +86,10 @@ class DeviceStorage:
                 yaml.safe_dump(data, file, default_flow_style=False, sort_keys=False)
             
             _LOGGER.debug("Saved %d device(s) to %s", len(self._devices), self.storage_path)
-        except Exception as e:
-            _LOGGER.error("Error saving devices to %s: %s", self.storage_path, e)
+        except yaml.YAMLError as e:
+            _LOGGER.error("Error serializing device data to YAML: %s", e)
+        except (FileNotFoundError, PermissionError, OSError) as e:
+            _LOGGER.error("Error writing to storage file %s: %s", self.storage_path, e)
     
     def add_device(self, device: VirtualDevice) -> bool:
         """Add a new device to storage.
