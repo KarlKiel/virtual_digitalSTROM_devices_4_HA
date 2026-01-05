@@ -27,6 +27,10 @@ This integration will be available through HACS in the future.
 - Create virtual digitalSTROM devices based on Home Assistant entities
 - Manage digitalSTROM vDSDs
 - Integration with Home Assistant's configuration UI
+- Full support for all digitalSTROM device classes (12 standard classes)
+  - Yellow (Lights), Gray (Blinds), Blue (Climate), Cyan (Audio), Magenta (Video)
+  - Black (Joker - Configurable), and more
+- See [DEVICE_CLASSES.md](custom_components/virtual_digitalstrom_devices/DEVICE_CLASSES.md) for complete device class documentation
 
 ## Development
 
@@ -39,11 +43,29 @@ custom_components/virtual_digitalstrom_devices/
 ├── __init__.py              # Integration setup and entry point
 ├── config_flow.py           # Configuration UI flow
 ├── const.py                 # Constants used throughout the integration
+├── device_classes.py        # digitalSTROM device classes and color groups
+├── DEVICE_CLASSES.md        # Device classes documentation
+├── example_device_classes.py # Example usage of device classes
 ├── manifest.json            # Integration metadata
 ├── strings.json             # UI strings
+├── ds-basics.pdf            # digitalSTROM specification reference
 └── translations/
     └── en.json              # English translations
 ```
+
+### Device Classes
+
+The integration supports all 12 standard digitalSTROM device classes organized by color groups:
+
+- **Yellow (Lights)**: Room lights, garden lights, building illuminations
+- **Gray (Blinds)**: Blinds, shades, awnings, curtains
+- **Blue (Climate)**: Heating, cooling, ventilation, temperature control, windows
+- **Cyan (Audio)**: Music, radio
+- **Magenta (Video)**: TV, video
+- **Black (Joker)**: Configurable devices
+- Additional groups for Security (Red), Access (Green), and Single Devices (White)
+
+For detailed information about device classes, see [DEVICE_CLASSES.md](custom_components/virtual_digitalstrom_devices/DEVICE_CLASSES.md).
 
 ## Support
 
