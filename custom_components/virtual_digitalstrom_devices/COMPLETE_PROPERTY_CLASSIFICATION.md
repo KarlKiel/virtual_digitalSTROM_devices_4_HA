@@ -39,36 +39,38 @@ This document provides a detailed classification of **every individual property*
 ## Legend
 
 - **CONFIG** = Configuration property - describes the device, set at creation or during runtime if write-enabled, **always persisted**
-- **STATE** = State property - runtime values (inputs/outputs/actions/events), **may be persisted** (e.g., last sensor value)
-- **META** = Metadata property - derived/calculated values, auto-generated (e.g., timestamps for age calculation)
+- **STATE** = State property - runtime values (inputs/outputs/actions/events), **may be persisted** (e.g., last sensor value, control values)
+- **META** = Metadata property - derived/calculated values, auto-generated (e.g., timestamps for age calculation, clickType derived from behavior)
 - **Write-Enabled** = Can be modified during runtime (per vDC spec)
 - **Persisted** = Saved to storage (YAML or state file)
 - **Derived/Calc** = Automatically calculated or generated
+- **[R]** = Required property (per vDC spec)
+- **[O]** = Optional property (per vDC spec)
 
 ---
 
 ## 1. Root Device Properties
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| dSUID | string | CONFIG | ❌ | ✅ | ✅ | 34 hex chars, auto-generated at creation |
-| device_id | string | CONFIG | ❌ | ✅ | ✅ | Internal UUID, auto-generated at creation |
-| created_at | timestamp | META | ❌ | ✅ | ✅ | Creation timestamp, auto-calculated |
-| updated_at | timestamp | META | ❌ | ✅ | ✅ | Last config update timestamp, auto-calculated |
-| last_seen_at | timestamp | META | ❌ | ✅ | ✅ | Last activity timestamp, auto-calculated |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| dSUID | string | CONFIG | ❌ | ✅ | ✅ | [R] | 34 hex chars, auto-generated at creation |
+| device_id | string | CONFIG | ❌ | ✅ | ✅ | [R] | Internal UUID, auto-generated at creation |
+| created_at | timestamp | META | ❌ | ✅ | ✅ | [O] | Creation timestamp, auto-calculated |
+| updated_at | timestamp | META | ❌ | ✅ | ✅ | [O] | Last config update timestamp, auto-calculated |
+| last_seen_at | timestamp | META | ❌ | ✅ | ✅ | [O] | Last activity timestamp, auto-calculated |
 
 ---
 
 ## 2. General Device Properties (Section 4.1.1)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| primaryGroup | integer | CONFIG | ✅ | ✅ | ❌ | dS class number (1=Lights, 2=Blinds, etc.) |
-| zoneID | integer | CONFIG | ✅ | ✅ | ❌ | Global dS Zone ID |
-| progMode | boolean | STATE | ✅ | ✅ | ❌ | Programming mode active, may persist state |
-| modelFeatures | dict | CONFIG | ✅ | ✅ | ❌ | Feature flags (e.g., {"dimmable": true}) |
-| currentConfigId | string | CONFIG | ✅ | ✅ | ❌ | Active configuration ID |
-| configurations | list[string] | CONFIG | ✅ | ✅ | ❌ | Available configuration IDs |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| primaryGroup | integer | CONFIG | ✅ | ✅ | ❌ | [R] | dS class number (1=Lights, 2=Blinds, etc.) |
+| zoneID | integer | CONFIG | ✅ | ✅ | ❌ | [R] | Global dS Zone ID |
+| progMode | boolean | STATE | ✅ | ✅ | ❌ | [O] | Programming mode active, may persist state |
+| modelFeatures | dict | CONFIG | ✅ | ✅ | ❌ | [R] | Feature flags (e.g., {"dimmable": true}) |
+| currentConfigId | string | CONFIG | ✅ | ✅ | ❌ | [O] | Active configuration ID |
+| configurations | list[string] | CONFIG | ✅ | ✅ | ❌ | [R] | Available configuration IDs |
 
 ---
 
@@ -76,37 +78,37 @@ This document provides a detailed classification of **every individual property*
 
 ### 3.1 Button Input Descriptions[i] (Section 4.2.1)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| name | string | CONFIG | ❌ | ✅ | ❌ | Button name (describes hardware) |
-| dsIndex | integer | CONFIG | ❌ | ✅ | ✅ | Index 0..N-1, auto-assigned |
-| supportsLocalKeyMode | boolean | CONFIG | ❌ | ✅ | ❌ | Hardware capability |
-| buttonID | integer | CONFIG | ❌ | ✅ | ❌ | Optional button identifier |
-| buttonType | enum | CONFIG | ❌ | ✅ | ❌ | Physical button type (0-6) |
-| buttonElementID | enum | CONFIG | ❌ | ✅ | ❌ | Multi-contact element (0-8) |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| name | string | CONFIG | ❌ | ✅ | ❌ | [R] | Button name (describes hardware) |
+| dsIndex | integer | CONFIG | ❌ | ✅ | ✅ | [R] | Index 0..N-1, auto-assigned |
+| supportsLocalKeyMode | boolean | CONFIG | ❌ | ✅ | ❌ | [R] | Hardware capability |
+| buttonID | integer | CONFIG | ❌ | ✅ | ❌ | [O] | Optional button identifier |
+| buttonType | enum | CONFIG | ❌ | ✅ | ❌ | [R] | Physical button type (0-6) |
+| buttonElementID | enum | CONFIG | ❌ | ✅ | ❌ | [R] | Multi-contact element (0-8) |
 
 ### 3.2 Button Input Settings[i] (Section 4.2.2)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| group | integer | CONFIG | ✅ | ✅ | ❌ | Associated group |
-| function | integer | CONFIG | ✅ | ✅ | ❌ | Button function (0..15) |
-| mode | enum | CONFIG | ✅ | ✅ | ❌ | Operation mode (0,2,5-12,255) |
-| channel | integer | CONFIG | ✅ | ✅ | ❌ | Channel assignment (0 or 1..239) |
-| setsLocalPriority | boolean | CONFIG | ✅ | ✅ | ❌ | Sets local priority flag |
-| callsPresent | boolean | CONFIG | ✅ | ✅ | ❌ | Calls present flag |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| group | integer | CONFIG | ✅ | ✅ | ❌ | [R] | Associated group |
+| function | integer | CONFIG | ✅ | ✅ | ❌ | [R] | Button function (0..15) |
+| mode | enum | CONFIG | ✅ | ✅ | ❌ | [R] | Operation mode (0,2,5-12,255) |
+| channel | integer | CONFIG | ✅ | ✅ | ❌ | [R] | Channel assignment (0 or 1..239) |
+| setsLocalPriority | boolean | CONFIG | ✅ | ✅ | ❌ | [R] | Sets local priority flag |
+| callsPresent | boolean | CONFIG | ✅ | ✅ | ❌ | [R] | Calls present flag |
 
 ### 3.3 Button Input States[i] (Section 4.2.3)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| value | boolean/null | STATE | ❌ | ✅ | ❌ | Current button state, persist last value |
-| clickType | enum | STATE | ❌ | ✅ | ❌ | Last click type (0-14,255), persist last value |
-| age | float/null | META | ❌ | ❌ | ✅ | Time since last event, calculated from timestamp |
-| error | enum | STATE | ❌ | ✅ | ❌ | Error code (0-6), persist last value |
-| actionId | integer | STATE | ❌ | ✅ | ❌ | Optional: scene call alternative |
-| actionMode | enum | STATE | ❌ | ✅ | ❌ | Optional: action mode (0-2) |
-| _timestamp | timestamp | META | ❌ | ✅ | ✅ | Internal: timestamp for age calculation |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| value | boolean/null | STATE | ❌ | ✅ | ❌ | [R] | Current button state, persist last value |
+| clickType | enum | META | ❌ | ✅ | ✅ | [R] | Last click type (0-14,255), **derived by physical device behavior** |
+| age | float/null | META | ❌ | ❌ | ✅ | [R] | Time since last event, calculated from timestamp |
+| error | enum | STATE | ❌ | ✅ | ❌ | [R] | Error code (0-6), persist last value |
+| actionId | integer | STATE | ❌ | ✅ | ❌ | [O] | Optional: scene call alternative |
+| actionMode | enum | STATE | ❌ | ✅ | ❌ | [O] | Optional: action mode (0-2) |
+| _timestamp | timestamp | META | ❌ | ✅ | ✅ | [O] | Internal: timestamp for age calculation |
 
 ---
 
@@ -114,31 +116,31 @@ This document provides a detailed classification of **every individual property*
 
 ### 4.1 Binary Input Descriptions[i] (Section 4.3.1)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| name | string | CONFIG | ❌ | ✅ | ❌ | Input name (describes hardware) |
-| dsIndex | integer | CONFIG | ❌ | ✅ | ✅ | Index 0..N-1, auto-assigned |
-| inputType | enum | CONFIG | ❌ | ✅ | ❌ | Poll-only vs. change detection (0-1) |
-| inputUsage | enum | CONFIG | ❌ | ✅ | ❌ | Usage category (0-3) |
-| sensorFunction | enum | CONFIG | ❌ | ✅ | ❌ | Sensor function type (0,12) |
-| updateInterval | float | CONFIG | ❌ | ✅ | ❌ | Update interval in seconds |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| name | string | CONFIG | ❌ | ✅ | ❌ | [R] | Input name (describes hardware) |
+| dsIndex | integer | CONFIG | ❌ | ✅ | ✅ | [R] | Index 0..N-1, auto-assigned |
+| inputType | enum | CONFIG | ❌ | ✅ | ❌ | [R] | Poll-only vs. change detection (0-1) |
+| inputUsage | enum | CONFIG | ❌ | ✅ | ❌ | [R] | Usage category (0-3) |
+| sensorFunction | enum | CONFIG | ❌ | ✅ | ❌ | [R] | Sensor function type (0,12) |
+| updateInterval | float | CONFIG | ❌ | ✅ | ❌ | [R] | Update interval in seconds |
 
 ### 4.2 Binary Input Settings[i] (Section 4.3.2)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| group | integer | CONFIG | ✅ | ✅ | ❌ | Associated group |
-| sensorFunction | enum | CONFIG | ✅ | ✅ | ❌ | Sensor function (0-23) |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| group | integer | CONFIG | ✅ | ✅ | ❌ | [R] | Associated group |
+| sensorFunction | enum | CONFIG | ✅ | ✅ | ❌ | [R] | Sensor function (0-23) |
 
 ### 4.3 Binary Input States[i] (Section 4.3.3)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| value | boolean/null | STATE | ❌ | ✅ | ❌ | Current binary state, persist last value |
-| extendedValue | integer/null | STATE | ❌ | ✅ | ❌ | Optional extended value, persist |
-| age | float/null | META | ❌ | ❌ | ✅ | Time since last update, calculated from timestamp |
-| error | enum | STATE | ❌ | ✅ | ❌ | Error code (0-6), persist |
-| _timestamp | timestamp | META | ❌ | ✅ | ✅ | Internal: timestamp for age calculation |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| value | boolean/null | STATE | ❌ | ✅ | ❌ | [R] | Current binary state, persist last value |
+| extendedValue | integer/null | STATE | ❌ | ✅ | ❌ | [O] | Optional extended value, persist |
+| age | float/null | META | ❌ | ❌ | ✅ | [R] | Time since last update, calculated from timestamp |
+| error | enum | STATE | ❌ | ✅ | ❌ | [R] | Error code (0-6), persist |
+| _timestamp | timestamp | META | ❌ | ✅ | ✅ | [O] | Internal: timestamp for age calculation |
 
 ---
 
@@ -146,36 +148,36 @@ This document provides a detailed classification of **every individual property*
 
 ### 5.1 Sensor Descriptions[i] (Section 4.4.1)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| name | string | CONFIG | ❌ | ✅ | ❌ | Sensor name (describes hardware) |
-| dsIndex | integer | CONFIG | ❌ | ✅ | ✅ | Index 0..N-1, auto-assigned |
-| sensorType | enum | CONFIG | ❌ | ✅ | ❌ | Sensor type (0-28: temp, humidity, etc.) |
-| sensorUsage | enum | CONFIG | ❌ | ✅ | ❌ | Usage category (0-6) |
-| min | float | CONFIG | ❌ | ✅ | ❌ | Minimum sensor value |
-| max | float | CONFIG | ❌ | ✅ | ❌ | Maximum sensor value |
-| resolution | float | CONFIG | ❌ | ✅ | ❌ | Sensor resolution |
-| updateInterval | float | CONFIG | ❌ | ✅ | ❌ | Update interval in seconds |
-| aliveSignInterval | float | CONFIG | ❌ | ✅ | ❌ | Alive signal interval in seconds |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| name | string | CONFIG | ❌ | ✅ | ❌ | [R] | Sensor name (describes hardware) |
+| dsIndex | integer | CONFIG | ❌ | ✅ | ✅ | [R] | Index 0..N-1, auto-assigned |
+| sensorType | enum | CONFIG | ❌ | ✅ | ❌ | [R] | Sensor type (0-28: temp, humidity, etc.) |
+| sensorUsage | enum | CONFIG | ❌ | ✅ | ❌ | [R] | Usage category (0-6) |
+| min | float | CONFIG | ❌ | ✅ | ❌ | [R] | Minimum sensor value |
+| max | float | CONFIG | ❌ | ✅ | ❌ | [R] | Maximum sensor value |
+| resolution | float | CONFIG | ❌ | ✅ | ❌ | [R] | Sensor resolution |
+| updateInterval | float | CONFIG | ❌ | ✅ | ❌ | [R] | Update interval in seconds |
+| aliveSignInterval | float | CONFIG | ❌ | ✅ | ❌ | [R] | Alive signal interval in seconds |
 
 ### 5.2 Sensor Settings[i] (Section 4.4.2)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| group | integer | CONFIG | ✅ | ✅ | ❌ | Associated group |
-| minPushInterval | float | CONFIG | ✅ | ✅ | ❌ | Minimum push interval (default: 2.0) |
-| changesOnlyInterval | float | CONFIG | ✅ | ✅ | ❌ | Changes-only interval (default: 0.0) |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| group | integer | CONFIG | ✅ | ✅ | ❌ | [R] | Associated group |
+| minPushInterval | float | CONFIG | ✅ | ✅ | ❌ | [R] | Minimum push interval (default: 2.0) |
+| changesOnlyInterval | float | CONFIG | ✅ | ✅ | ❌ | [R] | Changes-only interval (default: 0.0) |
 
 ### 5.3 Sensor States[i] (Section 4.4.3)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| value | float/null | STATE | ❌ | ✅ | ❌ | Current sensor reading, **persist for slow sensors** |
-| age | float/null | META | ❌ | ❌ | ✅ | Time since last reading, calculated from timestamp |
-| contextId | integer/null | STATE | ❌ | ✅ | ❌ | Optional context identifier |
-| contextMsg | string/null | STATE | ❌ | ✅ | ❌ | Optional context message |
-| error | enum | STATE | ❌ | ✅ | ❌ | Error code (0-6), persist |
-| _timestamp | timestamp | META | ❌ | ✅ | ✅ | Internal: timestamp for age calculation |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| value | float/null | STATE | ❌ | ✅ | ❌ | [R] | Current sensor reading, **persist for slow sensors** |
+| age | float/null | META | ❌ | ❌ | ✅ | [R] | Time since last reading, calculated from timestamp |
+| contextId | integer/null | STATE | ❌ | ✅ | ❌ | [R] | Optional context identifier |
+| contextMsg | string/null | STATE | ❌ | ✅ | ❌ | [R] | Optional context message |
+| error | enum | STATE | ❌ | ✅ | ❌ | [R] | Error code (0-6), persist |
+| _timestamp | timestamp | META | ❌ | ✅ | ✅ | [O] | Internal: timestamp for age calculation |
 
 ---
 
@@ -183,42 +185,42 @@ This document provides a detailed classification of **every individual property*
 
 ### 6.1 Device Action Descriptions[name] (Section 4.5.1)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| name | string | CONFIG | ❌ | ✅ | ❌ | Action name (describes capability) |
-| params | list | CONFIG | ❌ | ✅ | ❌ | Parameter descriptions |
-| params[].type | string | CONFIG | ❌ | ✅ | ❌ | 'numeric'/'enumeration'/'string' |
-| params[].min | float | CONFIG | ❌ | ✅ | ❌ | Minimum value (numeric) |
-| params[].max | float | CONFIG | ❌ | ✅ | ❌ | Maximum value (numeric) |
-| params[].resolution | float | CONFIG | ❌ | ✅ | ❌ | Resolution (numeric) |
-| params[].siunit | string | CONFIG | ❌ | ✅ | ❌ | SI unit (numeric) |
-| params[].options | dict | CONFIG | ❌ | ✅ | ❌ | Options (enumeration) |
-| params[].default | any | CONFIG | ❌ | ✅ | ❌ | Default value |
-| description | string | CONFIG | ❌ | ✅ | ❌ | Action description |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| name | string | CONFIG | ❌ | ✅ | ❌ | [R] | Action name (describes capability) |
+| params | list | CONFIG | ❌ | ✅ | ❌ | [R] | Parameter descriptions |
+| params[].type | string | CONFIG | ❌ | ✅ | ❌ | [R] | 'numeric'/'enumeration'/'string' |
+| params[].min | float | CONFIG | ❌ | ✅ | ❌ | [R] | Minimum value (numeric) |
+| params[].max | float | CONFIG | ❌ | ✅ | ❌ | [R] | Maximum value (numeric) |
+| params[].resolution | float | CONFIG | ❌ | ✅ | ❌ | [R] | Resolution (numeric) |
+| params[].siunit | string | CONFIG | ❌ | ✅ | ❌ | [R] | SI unit (numeric) |
+| params[].options | dict | CONFIG | ❌ | ✅ | ❌ | [R] | Options (enumeration) |
+| params[].default | any | CONFIG | ❌ | ✅ | ❌ | [R] | Default value |
+| description | string | CONFIG | ❌ | ✅ | ❌ | [R] | Action description |
 
 ### 6.2 Standard Actions[name] (Section 4.5.2)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| name | string | CONFIG | ✅ | ✅ | ❌ | Standard action name (with "std." prefix) |
-| action | string | CONFIG | ✅ | ✅ | ❌ | Action identifier |
-| params | dict | CONFIG | ✅ | ✅ | ❌ | Action parameters |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| name | string | CONFIG | ✅ | ✅ | ❌ | [R] | Standard action name (with "std." prefix) |
+| action | string | CONFIG | ✅ | ✅ | ❌ | [R] | Action identifier |
+| params | dict | CONFIG | ✅ | ✅ | ❌ | [R] | Action parameters |
 
 ### 6.3 Custom Actions[name] (Section 4.5.3)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| name | string | CONFIG | ✅ | ✅ | ❌ | Custom action name (with "custom." prefix) |
-| action | string | CONFIG | ✅ | ✅ | ❌ | Action identifier |
-| title | string | CONFIG | ✅ | ✅ | ❌ | Display title |
-| params | dict | CONFIG | ✅ | ✅ | ❌ | Action parameters |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| name | string | CONFIG | ✅ | ✅ | ❌ | [R] | Custom action name (with "custom." prefix) |
+| action | string | CONFIG | ✅ | ✅ | ❌ | [R] | Action identifier |
+| title | string | CONFIG | ✅ | ✅ | ❌ | [R] | Display title |
+| params | dict | CONFIG | ✅ | ✅ | ❌ | [R] | Action parameters |
 
 ### 6.4 Dynamic Device Actions[name] (Section 4.5.4)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| name | string | STATE | ❌ | ✅ | ❌ | Dynamic action name (with "dynamic." prefix), runtime-generated |
-| title | string | STATE | ❌ | ✅ | ❌ | Display title, runtime-generated |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| name | string | STATE | ❌ | ✅ | ❌ | [R] | Dynamic action name (with "dynamic." prefix), runtime-generated |
+| title | string | STATE | ❌ | ✅ | ❌ | [R] | Display title, runtime-generated |
 
 ---
 
@@ -226,18 +228,18 @@ This document provides a detailed classification of **every individual property*
 
 ### 7.1 Device State Descriptions[name]
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| name | string | CONFIG | ❌ | ✅ | ❌ | State name (describes state type) |
-| options | dict | CONFIG | ❌ | ✅ | ❌ | Valid state values (id:value pairs) |
-| description | string | CONFIG | ❌ | ✅ | ❌ | State description |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| name | string | CONFIG | ❌ | ✅ | ❌ | [R] | State name (describes state type) |
+| options | dict | CONFIG | ❌ | ✅ | ❌ | [R] | Valid state values (id:value pairs) |
+| description | string | CONFIG | ❌ | ✅ | ❌ | [R] | State description |
 
 ### 7.2 Device States[name]
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| name | string | STATE | ❌ | ✅ | ❌ | State name |
-| value | string | STATE | ❌ | ✅ | ❌ | Current state value, persist |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| name | string | STATE | ❌ | ✅ | ❌ | [R] | State name |
+| value | string | STATE | ❌ | ✅ | ❌ | [R] | Current state value, persist |
 
 ---
 
@@ -245,23 +247,23 @@ This document provides a detailed classification of **every individual property*
 
 ### 8.1 Device Property Descriptions[name]
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| name | string | CONFIG | ❌ | ✅ | ❌ | Property name (describes property type) |
-| type | string | CONFIG | ❌ | ✅ | ❌ | 'numeric'/'enumeration'/'string' |
-| min | float | CONFIG | ❌ | ✅ | ❌ | Minimum value (numeric) |
-| max | float | CONFIG | ❌ | ✅ | ❌ | Maximum value (numeric) |
-| resolution | float | CONFIG | ❌ | ✅ | ❌ | Resolution (numeric) |
-| siunit | string | CONFIG | ❌ | ✅ | ❌ | SI unit (numeric) |
-| options | dict | CONFIG | ❌ | ✅ | ❌ | Options (enumeration) |
-| default | any | CONFIG | ❌ | ✅ | ❌ | Default value |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| name | string | CONFIG | ❌ | ✅ | ❌ | [R] | Property name (describes property type) |
+| type | string | CONFIG | ❌ | ✅ | ❌ | [R] | 'numeric'/'enumeration'/'string' |
+| min | float | CONFIG | ❌ | ✅ | ❌ | [R] | Minimum value (numeric) |
+| max | float | CONFIG | ❌ | ✅ | ❌ | [R] | Maximum value (numeric) |
+| resolution | float | CONFIG | ❌ | ✅ | ❌ | [R] | Resolution (numeric) |
+| siunit | string | CONFIG | ❌ | ✅ | ❌ | [R] | SI unit (numeric) |
+| options | dict | CONFIG | ❌ | ✅ | ❌ | [R] | Options (enumeration) |
+| default | any | CONFIG | ❌ | ✅ | ❌ | [R] | Default value |
 
 ### 8.2 Device Properties[name]
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| name | string | STATE | ❌ | ✅ | ❌ | Property name |
-| value | any | STATE | ❌ | ✅ | ❌ | Current property value, persist |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| name | string | STATE | ❌ | ✅ | ❌ | [R] | Property name |
+| value | any | STATE | ❌ | ✅ | ❌ | [R] | Current property value, persist |
 
 ---
 
@@ -269,10 +271,10 @@ This document provides a detailed classification of **every individual property*
 
 ### 9.1 Device Event Descriptions[name]
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| name | string | CONFIG | ❌ | ✅ | ❌ | Event name (describes event type) |
-| description | string | CONFIG | ❌ | ✅ | ❌ | Event description |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| name | string | CONFIG | ❌ | ✅ | ❌ | [R] | Event name (describes event type) |
+| description | string | CONFIG | ❌ | ✅ | ❌ | [R] | Event description |
 
 ---
 
@@ -280,41 +282,41 @@ This document provides a detailed classification of **every individual property*
 
 ### 10.1 Output Description (Section 4.8.1)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| defaultGroup | integer | CONFIG | ❌ | ✅ | ❌ | Default group assignment (describes device) |
-| name | string | CONFIG | ❌ | ✅ | ❌ | Output name (describes hardware) |
-| function | enum | CONFIG | ❌ | ✅ | ❌ | Output function (0-6: on/off, dimmer, etc.) |
-| outputUsage | enum | CONFIG | ❌ | ✅ | ❌ | Usage category (0-3) |
-| variableRamp | boolean | CONFIG | ❌ | ✅ | ❌ | Supports variable ramping (capability) |
-| maxPower | float | CONFIG | ❌ | ✅ | ❌ | Maximum power in Watts (capability) |
-| activeCoolingMode | boolean | CONFIG | ❌ | ✅ | ❌ | Active cooling mode supported (capability) |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| defaultGroup | integer | CONFIG | ❌ | ✅ | ❌ | [R] | Default group assignment (describes device) |
+| name | string | CONFIG | ❌ | ✅ | ❌ | [R] | Output name (describes hardware) |
+| function | enum | CONFIG | ❌ | ✅ | ❌ | [R] | Output function (0-6: on/off, dimmer, etc.) |
+| outputUsage | enum | CONFIG | ❌ | ✅ | ❌ | [R] | Usage category (0-3) |
+| variableRamp | boolean | CONFIG | ❌ | ✅ | ❌ | [R] | Supports variable ramping (capability) |
+| maxPower | float | CONFIG | ❌ | ✅ | ❌ | [R] | Maximum power in Watts (capability) |
+| activeCoolingMode | boolean | CONFIG | ❌ | ✅ | ❌ | [R] | Active cooling mode supported (capability) |
 
 ### 10.2 Output Settings (Section 4.8.2)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| activeGroup | integer | CONFIG | ✅ | ✅ | ❌ | Currently active group |
-| groups | dict[int,bool] | CONFIG | ✅ | ✅ | ❌ | Group memberships (1..63) |
-| mode | enum | CONFIG | ✅ | ✅ | ❌ | Output mode (0,1,2,127) |
-| pushChanges | boolean | CONFIG | ✅ | ✅ | ❌ | Push changes flag |
-| onThreshold | float | CONFIG | ✅ | ✅ | ❌ | On detection threshold (0..100%, default: 50) |
-| minBrightness | float | CONFIG | ✅ | ✅ | ❌ | Minimum brightness (0..100%) |
-| dimTimeUp | integer | CONFIG | ✅ | ✅ | ❌ | Dim-up time (dS 8-bit format) |
-| dimTimeDown | integer | CONFIG | ✅ | ✅ | ❌ | Dim-down time (dS 8-bit format) |
-| dimTimeUpAlt1 | integer | CONFIG | ✅ | ✅ | ❌ | Alternate dim-up time 1 |
-| dimTimeDownAlt1 | integer | CONFIG | ✅ | ✅ | ❌ | Alternate dim-down time 1 |
-| dimTimeUpAlt2 | integer | CONFIG | ✅ | ✅ | ❌ | Alternate dim-up time 2 |
-| dimTimeDownAlt2 | integer | CONFIG | ✅ | ✅ | ❌ | Alternate dim-down time 2 |
-| heatingSystemCapability | enum | CONFIG | ✅ | ✅ | ❌ | Heating system capability (1-3) |
-| heatingSystemType | enum | CONFIG | ✅ | ✅ | ❌ | Heating system type (0-6) |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| activeGroup | integer | CONFIG | ✅ | ✅ | ❌ | [R] | Currently active group |
+| groups | dict[int,bool] | CONFIG | ✅ | ✅ | ❌ | [R] | Group memberships (1..63) |
+| mode | enum | CONFIG | ✅ | ✅ | ❌ | [R] | Output mode (0,1,2,127) |
+| pushChanges | boolean | CONFIG | ✅ | ✅ | ❌ | [R] | Push changes flag |
+| onThreshold | float | CONFIG | ✅ | ✅ | ❌ | [R] | On detection threshold (0..100%, default: 50) |
+| minBrightness | float | CONFIG | ✅ | ✅ | ❌ | [R] | Minimum brightness (0..100%) |
+| dimTimeUp | integer | CONFIG | ✅ | ✅ | ❌ | [R] | Dim-up time (dS 8-bit format) |
+| dimTimeDown | integer | CONFIG | ✅ | ✅ | ❌ | [R] | Dim-down time (dS 8-bit format) |
+| dimTimeUpAlt1 | integer | CONFIG | ✅ | ✅ | ❌ | [R] | Alternate dim-up time 1 |
+| dimTimeDownAlt1 | integer | CONFIG | ✅ | ✅ | ❌ | [R] | Alternate dim-down time 1 |
+| dimTimeUpAlt2 | integer | CONFIG | ✅ | ✅ | ❌ | [R] | Alternate dim-up time 2 |
+| dimTimeDownAlt2 | integer | CONFIG | ✅ | ✅ | ❌ | [R] | Alternate dim-down time 2 |
+| heatingSystemCapability | enum | CONFIG | ✅ | ✅ | ❌ | [R] | Heating system capability (1-3) |
+| heatingSystemType | enum | CONFIG | ✅ | ✅ | ❌ | [R] | Heating system type (0-6) |
 
 ### 10.3 Output State (Section 4.8.3)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| localPriority | boolean | STATE | ❌ | ✅ | ❌ | Local priority active, persist |
-| error | enum | STATE | ❌ | ✅ | ❌ | Error code (0-6), persist |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| localPriority | boolean | STATE | ❌ | ✅ | ❌ | [R] | Local priority active, persist |
+| error | enum | STATE | ❌ | ✅ | ❌ | [R] | Error code (0-6), persist |
 
 ---
 
@@ -322,28 +324,28 @@ This document provides a detailed classification of **every individual property*
 
 ### 11.1 Channel Descriptions[i] (Section 4.9.1)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| name | string | CONFIG | ❌ | ✅ | ❌ | Channel name (describes hardware) |
-| channelType | integer | CONFIG | ❌ | ✅ | ❌ | Channel type ID (0=default, 1=brightness, etc.) |
-| dsIndex | integer | CONFIG | ❌ | ✅ | ✅ | Index (0 is default channel), auto-assigned |
-| min | float | CONFIG | ❌ | ✅ | ❌ | Minimum channel value (capability) |
-| max | float | CONFIG | ❌ | ✅ | ❌ | Maximum channel value (capability) |
-| resolution | float | CONFIG | ❌ | ✅ | ❌ | Channel resolution (capability) |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| name | string | CONFIG | ❌ | ✅ | ❌ | [R] | Channel name (describes hardware) |
+| channelType | integer | CONFIG | ❌ | ✅ | ❌ | [R] | Channel type ID (0=default, 1=brightness, etc.) |
+| dsIndex | integer | CONFIG | ❌ | ✅ | ✅ | [R] | Index (0 is default channel), auto-assigned |
+| min | float | CONFIG | ❌ | ✅ | ❌ | [R] | Minimum channel value (capability) |
+| max | float | CONFIG | ❌ | ✅ | ❌ | [R] | Maximum channel value (capability) |
+| resolution | float | CONFIG | ❌ | ✅ | ❌ | [R] | Channel resolution (capability) |
 
 ### 11.2 Channel Settings[i] (Section 4.9.2)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
 | (none) | - | - | - | - | - | No settings currently defined |
 
 ### 11.3 Channel States[i] (Section 4.9.3)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| value | float | STATE | ❌ | ✅ | ❌ | Current channel value (e.g., brightness 0..100%), **persist** |
-| age | float/null | META | ❌ | ❌ | ✅ | Time since last update, calculated from timestamp |
-| _timestamp | timestamp | META | ❌ | ✅ | ✅ | Internal: timestamp for age calculation |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| value | float | STATE | ❌ | ✅ | ❌ | [R] | Current channel value (e.g., brightness 0..100%), **persist** |
+| age | float/null | META | ❌ | ❌ | ✅ | [R] | Time since last update, calculated from timestamp |
+| _timestamp | timestamp | META | ❌ | ✅ | ✅ | [O] | Internal: timestamp for age calculation |
 
 ---
 
@@ -351,35 +353,35 @@ This document provides a detailed classification of **every individual property*
 
 ### 12.1 Scenes[scene_number] (0..127)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| channels | dict | CONFIG | ✅ | ✅ | ❌ | Channel values for this scene (by channel_type_id) |
-| effect | enum | CONFIG | ✅ | ✅ | ❌ | Transition effect (0-4: no effect, smooth, slow, very slow, blink) |
-| dontCare | boolean | CONFIG | ✅ | ✅ | ❌ | Scene-global don't care flag |
-| ignoreLocalPriority | boolean | CONFIG | ✅ | ✅ | ❌ | Override local priority |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| channels | dict | CONFIG | ✅ | ✅ | ❌ | [R] | Channel values for this scene (by channel_type_id) |
+| effect | enum | CONFIG | ✅ | ✅ | ❌ | [R] | Transition effect (0-4: no effect, smooth, slow, very slow, blink) |
+| dontCare | boolean | CONFIG | ✅ | ✅ | ❌ | [R] | Scene-global don't care flag |
+| ignoreLocalPriority | boolean | CONFIG | ✅ | ✅ | ❌ | [R] | Override local priority |
 
 ### 12.2 Scene Channel Values[channel_type_id]
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| value | float | CONFIG | ✅ | ✅ | ❌ | Target channel value for this scene |
-| dontCare | boolean | CONFIG | ✅ | ✅ | ❌ | Ignore this channel in scene |
-| automatic | boolean | CONFIG | ✅ | ✅ | ❌ | Automatically set value |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| value | float | CONFIG | ✅ | ✅ | ❌ | [R] | Target channel value for this scene |
+| dontCare | boolean | CONFIG | ✅ | ✅ | ❌ | [R] | Ignore this channel in scene |
+| automatic | boolean | CONFIG | ✅ | ✅ | ❌ | [R] | Automatically set value |
 
 ---
 
-## 13. Control Values (Section 4.11) - Write-Only
+## 13. Control Values (Section 4.11)
 
-These are **write-only** control values that trigger immediate actions. They are not stored as properties.
+These control values are **persisted STATE properties** to maintain device functionality during connection interruptions (e.g., heating radiator needs to remember target temperature if DSS connection breaks).
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| heatingLevel | float | ACTION | ⚡ | ❌ | ❌ | Write-only: set heating level |
-| coolingLevel | float | ACTION | ⚡ | ❌ | ❌ | Write-only: set cooling level |
-| ventilationLevel | float | ACTION | ⚡ | ❌ | ❌ | Write-only: set ventilation level |
-| (various control values) | - | ACTION | ⚡ | ❌ | ❌ | Write-only control commands |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
+|----------|------|----------|---------------|-----------|--------------|---------|-------|
+| heatingLevel | float | STATE | ✅ | ✅ | ❌ | [O] | Heating level control value, **persist for connection loss** |
+| coolingLevel | float | STATE | ✅ | ✅ | ❌ | [O] | Cooling level control value, **persist for connection loss** |
+| ventilationLevel | float | STATE | ✅ | ✅ | ❌ | [O] | Ventilation level control value, **persist for connection loss** |
+| (various control values) | - | STATE | ✅ | ✅ | ❌ | [O] | Other control values, persisted for reliability |
 
-**Note:** ⚡ = Write-only action trigger (not a stored property)
+**Note:** Control values are now persisted STATE properties to ensure device functionality during DSS connection interruptions.
 
 ---
 
@@ -387,14 +389,14 @@ These are **write-only** control values that trigger immediate actions. They are
 
 These are additional properties specific to our Home Assistant integration:
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Notes |
-|----------|------|----------|---------------|-----------|--------------|-------|
-| name | string | CONFIG | ✅ | ✅ | ❌ | User-friendly device name (HA-specific) |
-| ha_entity_id | string | CONFIG | ✅ | ✅ | ❌ | Home Assistant entity mapping |
-| attributes | dict | CONFIG | ✅ | ✅ | ❌ | User-defined custom attributes |
-| connection_status | string | STATE | ❌ | ✅ | ❌ | "connected"/"disconnected"/"unknown", persist |
-| system_status | string | STATE | ❌ | ✅ | ❌ | "active"/"inactive"/"error"/"unknown", persist |
-| api_version | string | CONFIG | ❌ | ✅ | ❌ | vDC API version (e.g., "1.0") |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+|----------|------|----------|---------------|-----------|--------------|-------|---------|
+| name | string | CONFIG | ✅ | ✅ | ❌ | [R] | User-friendly device name (HA-specific) |
+| ha_entity_id | string | CONFIG | ✅ | ✅ | ❌ | [R] | Home Assistant entity mapping |
+| attributes | dict | CONFIG | ✅ | ✅ | ❌ | [R] | User-defined custom attributes |
+| connection_status | string | STATE | ❌ | ✅ | ❌ | [R] | "connected"/"disconnected"/"unknown", persist |
+| system_status | string | STATE | ❌ | ✅ | ❌ | [R] | "active"/"inactive"/"error"/"unknown", persist |
+| api_version | string | CONFIG | ❌ | ✅ | ❌ | [R] | vDC API version (e.g., "1.0") |
 
 ---
 
@@ -405,9 +407,9 @@ These are additional properties specific to our Home Assistant integration:
 | Category | Count | Percentage | Persistence |
 |----------|-------|------------|-------------|
 | **Configuration (CONFIG)** | 75 | 55% | **Always persisted** |
-| **State (STATE)** | 42 | 31% | **May be persisted** (decision per use case) |
-| **Metadata (META)** | 20 | 14% | **Persisted if needed** (for calculations) |
-| **Total Properties** | **137** | **100%** | - |
+| **State (STATE)** | 45 | 33% | **Selectively persisted** (based on use case) |
+| **Metadata (META)** | 21 | 15% | **Persisted if needed** (for calculations) |
+| **Total Properties** | **141** | **100%** | - |
 
 ### Key Insights
 
@@ -417,19 +419,20 @@ These are additional properties specific to our Home Assistant integration:
 - **ALWAYS persisted to YAML**
 - Examples: device descriptions, settings, scene configurations
 
-**STATE Properties (42):**
+**STATE Properties (45):**
 - Runtime values that change during operation
 - **Persistence decision based on use case:**
-  - ✅ Persist: Sensor values (especially slow update cycles), channel values, connection status
+  - ✅ Persist: Sensor values (especially slow update cycles), channel values, connection status, **control values (heatingLevel, coolingLevel, etc.)**
   - ❓ Optional: Button states, error codes
   - ❌ Don't persist: Transient events
-- Examples: sensor readings, channel states, button presses
+- Examples: sensor readings, channel states, button presses, control values
 
-**META Properties (20):**
+**META Properties (21):**
 - Derived or calculated automatically
 - Not directly set by user or runtime updates
 - **Persisted when needed for calculations** (e.g., timestamps for age)
-- Examples: age calculations, timestamps, auto-assigned indices
+- Includes **clickType** (derived from physical device behavior)
+- Examples: age calculations, timestamps, auto-assigned indices, clickType
 
 ---
 
@@ -443,9 +446,8 @@ These are additional properties specific to our Home Assistant integration:
 ### Category Definitions Summary
 
 1. **CONFIG**: Device description, set at creation or runtime (if write-enabled), **always persisted**
-2. **STATE**: Runtime values, **selectively persisted** based on use case
-3. **META**: Derived/calculated values, **persisted if needed for calculations**
-4. **ACTION**: Write-only commands that trigger actions, never stored
+2. **STATE**: Runtime values, **selectively persisted** based on use case (includes control values for reliability)
+3. **META**: Derived/calculated values, **persisted if needed for calculations** (includes clickType, timestamps, age)
 
 ---
 
