@@ -119,8 +119,7 @@ DEVICE_CLASSES = {
             "TV",
             "Video",
         ),
-        # Note: Video devices use AUDIO_VOLUME as primary channel per digitalSTROM spec
-        # since the common control for both audio and video devices is volume
+        # Video devices use AUDIO_VOLUME per digitalSTROM spec
         primary_channel=DSPrimaryChannel.AUDIO_VOLUME,
         description="Video and TV devices",
     ),
