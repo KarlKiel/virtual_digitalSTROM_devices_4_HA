@@ -11,16 +11,16 @@ cd custom_components/virtual_digitalstrom_devices && python3 example_device_stor
 import sys
 from pathlib import Path
 
-# For standalone execution, ensure parent package is importable
+# For standalone execution, add current directory to path
 if __name__ == "__main__":
-    # Add parent directory to path to allow relative imports
-    parent_dir = Path(__file__).parent.parent
-    if str(parent_dir) not in sys.path:
-        sys.path.insert(0, str(parent_dir))
+    current_dir = Path(__file__).parent
+    if str(current_dir) not in sys.path:
+        sys.path.insert(0, str(current_dir))
 
-from virtual_digitalstrom_devices.virtual_device import VirtualDevice
-from virtual_digitalstrom_devices.device_storage import DeviceStorage
-from virtual_digitalstrom_devices.device_classes import DSGroupID
+# Import modules directly (not through package __init__.py)
+import virtual_device
+import device_storage
+import device_classes
 
 
 def main():
@@ -28,24 +28,24 @@ def main():
     
     # Initialize device storage
     storage_file = Path("example_devices.yaml")
-    storage = DeviceStorage(storage_file)
+    storage = device_storage.DeviceStorage(storage_file)
     
     print("=== Virtual digitalSTROM Device Storage Example ===\n")
     
     # Create and add devices
     print("Creating devices...")
     
-    light = VirtualDevice(
+    light = virtual_device.VirtualDevice(
         name="Living Room Light",
-        group_id=DSGroupID.LIGHTS,
+        group_id=device_classes.DSGroupID.LIGHTS,
         ha_entity_id="light.living_room",
         zone_id=1,
         attributes={"brightness": 255, "color_temp": 4000}
     )
     
-    blind = VirtualDevice(
+    blind = virtual_device.VirtualDevice(
         name="Bedroom Blinds",
-        group_id=DSGroupID.BLINDS,
+        group_id=device_classes.DSGroupID.BLINDS,
         ha_entity_id="cover.bedroom_blinds",
         zone_id=2,
         attributes={"position": 50, "tilt": 45}
@@ -70,7 +70,7 @@ def main():
     
     # Get devices by group
     print("\nDevices in LIGHTS group:")
-    for device in storage.get_devices_by_group(DSGroupID.LIGHTS):
+    for device in storage.get_devices_by_group(device_classes.DSGroupID.LIGHTS):
         print(f"  - {device.name}")
     
     print("\n✓ Example completed successfully!")
