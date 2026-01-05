@@ -18,10 +18,14 @@ DOMAIN = "virtual_digitalstrom_devices"
 # Default values
 DEFAULT_NAME = "Virtual digitalSTROM Devices"
 
+# Storage
+STORAGE_FILE = "virtual_digitalstrom_devices.yaml"
+
 # Export device class information
 __all__ = [
     "DOMAIN",
     "DEFAULT_NAME",
+    "STORAGE_FILE",
     "DEVICE_CLASSES",
     "ADDITIONAL_COLOR_GROUPS",
     "DSColor",
