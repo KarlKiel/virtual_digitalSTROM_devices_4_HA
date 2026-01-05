@@ -12,12 +12,13 @@ import sys
 from pathlib import Path
 
 # For standalone execution, add current directory to path
+# This allows direct module imports without loading the package __init__.py
 if __name__ == "__main__":
     current_dir = Path(__file__).parent
     if str(current_dir) not in sys.path:
         sys.path.insert(0, str(current_dir))
 
-# Import modules directly (not through package __init__.py)
+# Direct module imports for standalone execution
 import virtual_device
 import device_storage
 import device_classes

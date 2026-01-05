@@ -160,6 +160,17 @@ class DeviceStorage:
         """
         return list(self._devices.values())
     
+    def _get_group_id_value(self, group_id: Any) -> int:
+        """Extract integer value from group_id, handling both enum and int types.
+        
+        Args:
+            group_id: Group ID as either int or enum
+            
+        Returns:
+            Integer value of the group ID
+        """
+        return group_id.value if hasattr(group_id, 'value') else group_id
+    
     def get_devices_by_group(self, group_id: int) -> list[VirtualDevice]:
         """Get all devices in a specific device class group.
         
@@ -169,11 +180,10 @@ class DeviceStorage:
         Returns:
             List of VirtualDevice instances in the group
         """
-        # Handle both enum and int group_id values
-        group_id_value = group_id.value if hasattr(group_id, 'value') else group_id
+        group_id_value = self._get_group_id_value(group_id)
         return [
             device for device in self._devices.values() 
-            if (device.group_id.value if hasattr(device.group_id, 'value') else device.group_id) == group_id_value
+            if self._get_group_id_value(device.group_id) == group_id_value
         ]
     
     def device_exists(self, device_id: str) -> bool:

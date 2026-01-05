@@ -17,13 +17,13 @@ class VirtualDevice:
     """Represents a virtual digitalSTROM device instance.
     
     Attributes:
-        device_id: Unique identifier for the device
-        name: Human-readable device name
-        group_id: digitalSTROM group ID (device class)
-        ha_entity_id: Home Assistant entity ID this device is mapped to
-        dsid: digitalSTROM device ID (dSID)
-        zone_id: Zone/room ID where the device is located
-        attributes: Additional device-specific attributes
+        device_id (str): Unique identifier for the device (auto-generated UUID)
+        name (str): Human-readable device name
+        group_id (int): digitalSTROM group ID (device class)
+        ha_entity_id (str): Home Assistant entity ID this device is mapped to
+        dsid (str): digitalSTROM device ID (dSID, auto-generated UUID)
+        zone_id (int): Zone/room ID where the device is located
+        attributes (dict): Additional device-specific attributes
     """
     
     device_id: str = field(default_factory=lambda: str(uuid.uuid4()))
