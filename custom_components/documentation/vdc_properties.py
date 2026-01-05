@@ -273,7 +273,7 @@ class ButtonInput:
     state: ButtonInputState = field(default_factory=ButtonInputState)
 
     def __post_init__(self):
-        """Validate that the button index matches across components"""
+        """Validate that all components have the correct types"""
         if not isinstance(self.description, ButtonInputDescription):
             raise TypeError("description must be ButtonInputDescription")
         if not isinstance(self.settings, ButtonInputSettings):
