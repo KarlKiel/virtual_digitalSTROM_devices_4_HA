@@ -49,12 +49,21 @@ This document provides a detailed classification of **every individual property*
 
 ---
 
-## 1. Root Device Properties
+## 1. Common Properties for All Addressable Entities (vDC Spec Section 2)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
-|----------|------|----------|---------------|-----------|--------------|-------|---------|
+These properties must be supported by all addressable entities (vdSD, vDC, vDC host) per the vDC specification.
+
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
+|----------|------|----------|---------------|-----------|--------------|---------|-------|
 | dSUID | string | CONFIG | ❌ | ✅ | ✅ | [R] | 34 hex chars, auto-generated at creation |
-| device_id | string | CONFIG | ❌ | ✅ | ✅ | [R] | Internal UUID, auto-generated at creation |
+| displayId | string | CONFIG | ❌ | ✅ | ❌ | [R] | Human-readable identification printed on physical device |
+| type | string | CONFIG | ❌ | ✅ | ✅ | [R] | Entity type: "vdSD" (virtual device), "vDC", "vDChost", "vdSM" - auto-set |
+| model | string | CONFIG | ❌ | ✅ | ❌ | [R] | Human-readable model string (descriptive, for hardware/software association) |
+| modelVersion | string | CONFIG | ❌ | ✅ | ❌ | [R] | Human-readable model version (end-user visible, usually firmware version) |
+| modelUID | string | CONFIG | ❌ | ✅ | ❌ | [R] | digitalSTROM system unique ID for functional model (same for functionally identical entities) |
+| hardwareVersion | string | CONFIG | ❌ | ✅ | ❌ | [O] | Human-readable hardware version string, if available |
+| hardwareGuid | string | CONFIG | ❌ | ✅ | ❌ | [O] | Hardware's native GUID in URN format (gs1:, macaddress:, enoceanaddress:, uuid:) |
+| device_id | string | CONFIG | ❌ | ✅ | ✅ | [R] | Internal UUID for HA integration, auto-generated |
 | created_at | timestamp | META | ❌ | ✅ | ✅ | [O] | Creation timestamp, auto-calculated |
 | updated_at | timestamp | META | ❌ | ✅ | ✅ | [O] | Last config update timestamp, auto-calculated |
 | last_seen_at | timestamp | META | ❌ | ✅ | ✅ | [O] | Last activity timestamp, auto-calculated |
@@ -406,18 +415,19 @@ These are additional properties specific to our Home Assistant integration:
 
 | Category | Count | Percentage | Persistence |
 |----------|-------|------------|-------------|
-| **Configuration (CONFIG)** | 75 | 55% | **Always persisted** |
-| **State (STATE)** | 45 | 33% | **Selectively persisted** (based on use case) |
-| **Metadata (META)** | 21 | 15% | **Persisted if needed** (for calculations) |
-| **Total Properties** | **141** | **100%** | - |
+| **Configuration (CONFIG)** | 81 | 56% | **Always persisted** |
+| **State (STATE)** | 45 | 31% | **Selectively persisted** (based on use case) |
+| **Metadata (META)** | 22 | 15% | **Persisted if needed** (for calculations) |
+| **Total Properties** | **148** | **100%** | - |
 
 ### Key Insights
 
-**CONFIG Properties (75):**
+**CONFIG Properties (81):**
 - Describe the device and its capabilities
+- Includes **common properties for all entities** (displayId, type, model, modelVersion, modelUID, hardwareVersion, hardwareGuid)
 - Set at creation, some modifiable at runtime
 - **ALWAYS persisted to YAML**
-- Examples: device descriptions, settings, scene configurations
+- Examples: device descriptions, settings, scene configurations, model information
 
 **STATE Properties (45):**
 - Runtime values that change during operation
@@ -427,12 +437,12 @@ These are additional properties specific to our Home Assistant integration:
   - ❌ Don't persist: Transient events
 - Examples: sensor readings, channel states, button presses, control values
 
-**META Properties (21):**
+**META Properties (22):**
 - Derived or calculated automatically
 - Not directly set by user or runtime updates
 - **Persisted when needed for calculations** (e.g., timestamps for age)
-- Includes **clickType** (derived from physical device behavior)
-- Examples: age calculations, timestamps, auto-assigned indices, clickType
+- Includes **clickType** (derived from physical device behavior), **type** (auto-set to "vdSD")
+- Examples: age calculations, timestamps, auto-assigned indices, clickType, entity type
 
 ---
 

@@ -13,12 +13,26 @@ The persistence layer consists of two main components:
 
 The `VirtualDevice` class represents a single virtual digitalSTROM device with the following attributes:
 
-- `device_id`: Unique identifier (auto-generated UUID)
-- `name`: Human-readable device name
-- `group_id`: digitalSTROM group ID (device class)
-- `ha_entity_id`: Home Assistant entity ID
-- `dsid`: digitalSTROM device ID (auto-generated UUID)
-- `zone_id`: Zone/room ID
+### Common Properties for All Addressable Entities (vDC Spec Section 2)
+
+These properties must be supported by all addressable entities per the vDC specification:
+
+- `device_id`: Internal unique identifier for HA integration (auto-generated UUID)
+- `dsid`: dSUID - digitalSTROM device ID (auto-generated, 34 hex chars format)
+- `display_id`: Human-readable identification printed on the physical device
+- `type`: Entity type, always "vdSD" for virtual digitalSTROM devices
+- `model`: Human-readable model string (descriptive hardware/software identifier)
+- `model_version`: Model version string (typically firmware version)
+- `model_uid`: digitalSTROM system unique ID for the functional model
+- `hardware_version`: Hardware version string (optional)
+- `hardware_guid`: Hardware's native GUID in URN format (optional, e.g., "uuid:...", "macaddress:...")
+
+### Device-Specific Properties
+
+- `name`: User-friendly device name (HA-specific)
+- `group_id`: digitalSTROM group ID (device class: 1=Lights, 2=Blinds, etc.)
+- `ha_entity_id`: Home Assistant entity ID mapped to this device
+- `zone_id`: Zone/room ID where the device is located
 - `attributes`: Additional device-specific attributes (dict)
 
 ### Example
@@ -27,13 +41,19 @@ The `VirtualDevice` class represents a single virtual digitalSTROM device with t
 from virtual_device import VirtualDevice
 from device_classes import DSGroupID
 
-# Create a light device
+# Create a light device with common and device-specific properties
 light = VirtualDevice(
+    # Common properties (most auto-generated or system-assigned)
+    display_id="LIGHT-001",
+    model="Virtual Light Switch",
+    model_version="1.0.0",
+    model_uid="vdSD-light-dimmer-v1",
+    # Device-specific properties
     name="Living Room Light",
     group_id=DSGroupID.LIGHTS,
     ha_entity_id="light.living_room",
     zone_id=1,
-    attributes={"brightness": 255}
+    attributes={"brightness": 255, "dimmable": True}
 )
 ```
 
@@ -75,19 +95,27 @@ storage.delete_device(light.device_id)
 
 ## YAML Format
 
-Devices are stored in the following YAML format:
+Devices are stored in the following YAML format with all common and device-specific properties:
 
 ```yaml
 devices:
 - device_id: 550e8400-e29b-41d4-a716-446655440000
+  dsid: 6ba7b810-9dad-11d1-80b4-00c04fd430c8
+  display_id: LIGHT-001
+  type: vdSD
+  model: Virtual Light Switch
+  model_version: 1.0.0
+  model_uid: vdSD-light-dimmer-v1
+  hardware_version: ''
+  hardware_guid: ''
   name: Living Room Light
   group_id: 1
   ha_entity_id: light.living_room
-  dsid: 6ba7b810-9dad-11d1-80b4-00c04fd430c8
   zone_id: 1
   attributes:
     brightness: 255
     color_temp: 4000
+    dimmable: true
 ```
 
 ## Integration with Home Assistant

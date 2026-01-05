@@ -36,15 +36,29 @@ def main():
     # Create and add devices
     print("Creating devices...")
     
+    # Light device with common properties
     light = virtual_device.VirtualDevice(
+        # Common properties (vDC Spec Section 2)
+        display_id="LIGHT-LR-001",
+        model="Virtual Dimmable Light",
+        model_version="1.0.0",
+        model_uid="vdSD-light-dimmer-v1",
+        # Device-specific properties
         name="Living Room Light",
         group_id=device_classes.DSGroupID.LIGHTS,
         ha_entity_id="light.living_room",
         zone_id=1,
-        attributes={"brightness": 255, "color_temp": 4000}
+        attributes={"brightness": 255, "color_temp": 4000, "dimmable": True}
     )
     
+    # Blind device with common properties
     blind = virtual_device.VirtualDevice(
+        # Common properties (vDC Spec Section 2)
+        display_id="BLIND-BR-001",
+        model="Virtual Motorized Blind",
+        model_version="1.0.0",
+        model_uid="vdSD-blind-motor-v1",
+        # Device-specific properties
         name="Bedroom Blinds",
         group_id=device_classes.DSGroupID.BLINDS,
         ha_entity_id="cover.bedroom_blinds",
