@@ -61,7 +61,7 @@ class DeviceClass(NamedTuple):
     name: str
     color: DSColor
     applications: list[str]
-    primary_channel: DSPrimaryChannel
+    primary_channel: DSPrimaryChannel | None
     description: str
 
 
