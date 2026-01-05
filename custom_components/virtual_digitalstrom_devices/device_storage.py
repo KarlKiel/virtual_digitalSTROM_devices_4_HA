@@ -8,22 +8,17 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, TYPE_CHECKING
+from typing import Any
 
 import yaml
 
-# Handle both package and standalone imports
-# This allows the module to work both when installed as a Home Assistant integration
-# and when used in standalone examples/tests
-if TYPE_CHECKING:
+# Handle both package imports (when used as Home Assistant integration)
+# and standalone imports (for examples/testing)
+try:
     from .virtual_device import VirtualDevice
-else:
-    try:
-        from .virtual_device import VirtualDevice
-    except ImportError:
-        # Standalone execution - use absolute import
-        import virtual_device  # type: ignore
-        VirtualDevice = virtual_device.VirtualDevice  # type: ignore
+except ImportError:
+    import virtual_device  # type: ignore
+    VirtualDevice = virtual_device.VirtualDevice  # type: ignore
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -169,12 +164,17 @@ class DeviceStorage:
         """Get all devices in a specific device class group.
         
         Args:
-            group_id: digitalSTROM group ID
+            group_id: digitalSTROM group ID (can be int or enum)
             
         Returns:
             List of VirtualDevice instances in the group
         """
-        return [device for device in self._devices.values() if device.group_id == group_id]
+        # Handle both enum and int group_id values
+        group_id_value = group_id.value if hasattr(group_id, 'value') else group_id
+        return [
+            device for device in self._devices.values() 
+            if (device.group_id.value if hasattr(device.group_id, 'value') else device.group_id) == group_id_value
+        ]
     
     def device_exists(self, device_id: str) -> bool:
         """Check if a device exists.

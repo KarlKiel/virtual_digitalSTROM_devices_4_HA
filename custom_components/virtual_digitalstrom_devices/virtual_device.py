@@ -7,6 +7,7 @@ device instance that can be persisted to YAML storage.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any
 import uuid
 
@@ -39,8 +40,6 @@ class VirtualDevice:
         Returns:
             Dictionary representation of the device
         """
-        from enum import Enum
-        
         # Convert enum to int if group_id is an Enum
         group_id_value = self.group_id.value if isinstance(self.group_id, Enum) else self.group_id
         
