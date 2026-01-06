@@ -316,8 +316,8 @@ class VdcMessageDispatcher:
         payload = parsed_msg.payload
         
         device_dsuids = list(payload.dSUID)
-        channel = payload.channel if payload.HasField("channel") else None
-        mode = payload.mode if payload.HasField("mode") else None
+        channel = _safe_get_field(payload, "channel")
+        mode = _safe_get_field(payload, "mode")
         
         _LOGGER.info(
             f"DimChannel: devices={device_dsuids}, "
@@ -344,8 +344,8 @@ class VdcMessageDispatcher:
         payload = parsed_msg.payload
         
         device_dsuids = list(payload.dSUID)
-        name = payload.name if payload.HasField("name") else None
-        value = payload.value if payload.HasField("value") else None
+        name = _safe_get_field(payload, "name")
+        value = _safe_get_field(payload, "value")
         
         _LOGGER.info(
             f"SetControlValue: devices={device_dsuids}, "
@@ -513,8 +513,9 @@ class VdcMessageDispatcher:
             prop_name = prop.get("name")
             prop_value = prop.get("value")
             
-            # Check that name exists and value is present (can be 0, False, empty string, etc.)
-            if prop_name is not None and prop_value is not None:
+            # Check that name exists and 'value' key is in property dict
+            # This allows falsy values like 0, False, empty string, etc.
+            if prop_name is not None and "value" in prop:
                 # Use property updater to set the property
                 await self.property_updater.update_property(
                     device_id=device.device_id,
