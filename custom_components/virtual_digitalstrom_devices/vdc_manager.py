@@ -9,7 +9,9 @@ The vDC entity is created during integration installation and persisted to YAML 
 from __future__ import annotations
 
 import logging
+import random
 import uuid
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -89,6 +91,10 @@ class VdcManager:
     def _get_mac_address(self) -> str:
         """Get the MAC address of the Home Assistant server.
         
+        Note: uuid.getnode() returns the hardware MAC address if available,
+        but may return a random 48-bit number with the multicast bit set
+        if no MAC address can be found. The fallback logic handles this case.
+        
         Returns:
             MAC address as a formatted string (e.g., "12:34:56:78:90:AB")
         """
@@ -108,7 +114,6 @@ class VdcManager:
         except Exception as e:
             _LOGGER.warning("Failed to get MAC address: %s, using fallback", e)
             # Fallback: generate a random MAC address
-            import random
             mac_bytes = [random.randint(0x00, 0xFF) for _ in range(6)]
             # Set locally administered bit to avoid conflicts with real hardware
             mac_bytes[0] = (mac_bytes[0] & 0xFE) | 0x02
@@ -163,7 +168,6 @@ class VdcManager:
         }
         
         # Set timestamps
-        from datetime import datetime
         now = datetime.now().isoformat()
         if not self._vdc_config.get("created_at"):
             self._vdc_config["created_at"] = now
