@@ -132,4 +132,10 @@ Thumbs.db
 # Virtual digitalSTROM Devices
 virtual_digitalstrom_devices.yaml
 virtual_digitalstrom_listener_mappings.yaml
+virtual_digitalstrom_vdc_config.yaml
 example_devices.yaml
+
+# Integration storage files - stored directly in integration folder
+custom_components/virtual_digitalstrom_devices/virtual_digitalstrom_devices.yaml
+custom_components/virtual_digitalstrom_devices/virtual_digitalstrom_listener_mappings.yaml
+custom_components/virtual_digitalstrom_devices/virtual_digitalstrom_vdc_config.yaml

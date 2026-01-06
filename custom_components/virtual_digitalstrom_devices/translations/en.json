@@ -27,10 +27,41 @@
     "error": {
       "cannot_connect": "Failed to connect",
       "invalid_auth": "Invalid authentication",
-      "unknown": "Unexpected error"
+      "unknown": "Unexpected error",
+      "device_creation_failed": "Failed to create virtual device"
     },
     "abort": {
-      "already_configured": "Device is already configured"
+      "already_configured": "Device is already configured",
+      "single_instance_allowed": "Only one instance of this integration is allowed. To add virtual devices, go to the integration and click Configure."
+    }
+  },
+  "options": {
+    "step": {
+      "device_menu": {
+        "title": "Manage Virtual Devices",
+        "description": "Add or view virtual devices",
+        "menu_options": {
+          "add_device": "Add New Device",
+          "list_devices": "View Existing Devices"
+        }
+      },
+      "device_category": {
+        "title": "Create Virtual digitalSTROM Device",
+        "description": "Select the category for your new virtual device. Each category represents a different type of digitalSTROM device with specific functions and capabilities.",
+        "data": {
+          "category": "Device Category"
+        },
+        "data_description": {
+          "category": "Choose the color group that best matches your device type:\n\n• Yellow (Lights) - All lighting devices\n• Gray (Blinds) - Shading and blind control\n• Blue (Climate) - Heating, cooling, ventilation, windows\n• Cyan (Audio) - Audio playback devices\n• Magenta (Video) - TV and video devices\n• Red (Security) - Alarms, fire, panic systems\n• Green (Access) - Doors, doorbells, access control\n• White (Single Devices) - Individual appliances like fridges and coffee makers\n• Black (Joker) - Configurable/customizable devices"
+        }
+      },
+      "list_devices": {
+        "title": "Existing Virtual Devices",
+        "description": "List of virtual devices:\n\n{device_list}"
+      }
+    },
+    "error": {
+      "device_creation_failed": "Failed to create virtual device"
     }
   }
 }
