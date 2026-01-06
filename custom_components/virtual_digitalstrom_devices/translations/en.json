@@ -2,11 +2,25 @@
   "config": {
     "step": {
       "user": {
+        "title": "Virtual digitalSTROM Devices",
+        "description": "Set up the integration or add a new device"
+      },
+      "integration_setup": {
         "title": "Set up Virtual digitalSTROM Devices",
         "description": "Configure the Virtual digitalSTROM Devices integration",
         "data": {
           "name": "Name",
           "dss_port": "digitalSTROM Server TCP Port"
+        }
+      },
+      "device_category": {
+        "title": "Create Virtual digitalSTROM Device",
+        "description": "Select the category for your new virtual device. Each category represents a different type of digitalSTROM device with specific functions and capabilities.",
+        "data": {
+          "category": "Device Category"
+        },
+        "data_description": {
+          "category": "Choose the color group that best matches your device type:\n\n• Yellow (Lights) - All lighting devices\n• Gray (Blinds) - Shading and blind control\n• Blue (Climate) - Heating, cooling, ventilation, windows\n• Cyan (Audio) - Audio playback devices\n• Magenta (Video) - TV and video devices\n• Red (Security) - Alarms, fire, panic systems\n• Green (Access) - Doors, doorbells, access control\n• White (Single Devices) - Individual appliances like fridges and coffee makers\n• Black (Joker) - Configurable/customizable devices"
         }
       }
     },
