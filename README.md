@@ -27,6 +27,10 @@ This integration will be available through HACS in the future.
 - Create virtual digitalSTROM devices based on Home Assistant entities
 - Manage digitalSTROM vDSDs
 - Integration with Home Assistant's configuration UI
+- **Automatic state persistence and restoration across restarts**
+  - Critical device states (heating/cooling levels, channel values, sensor readings) are saved to YAML
+  - States automatically restored on Home Assistant startup
+  - See [STATE_RESTORATION.md](custom_components/virtual_digitalstrom_devices/STATE_RESTORATION.md) for details
 - Full support for all digitalSTROM device classes (12 standard classes)
   - Yellow (Lights), Gray (Blinds), Blue (Climate), Cyan (Audio), Magenta (Video)
   - Black (Joker - Configurable), and more
@@ -44,11 +48,21 @@ custom_components/virtual_digitalstrom_devices/
 ├── config_flow.py           # Configuration UI flow
 ├── const.py                 # Constants used throughout the integration
 ├── device_classes.py        # digitalSTROM device classes and color groups
+├── device_storage.py        # YAML-based device persistence
+├── virtual_device.py        # Virtual device data model
+├── state_restorer.py        # State restoration on startup
+├── state_listener.py        # State tracking from HA entities
+├── state_listener_manager.py # State listener coordination
+├── property_updater.py      # Property update and persistence
+├── device_listener_configurator.py # Auto-configure listeners
 ├── DEVICE_CLASSES.md        # Device classes documentation
-├── example_device_classes.py # Example usage of device classes
+├── DEVICE_STORAGE.md        # Device persistence documentation
+├── STATE_RESTORATION.md     # State restoration documentation
+├── STATE_LISTENER_SYSTEM.md # State listener documentation
+├── PROPERTY_UPDATE_SYSTEM.md # Property update documentation
+├── example_*.py             # Example scripts
 ├── manifest.json            # Integration metadata
 ├── strings.json             # UI strings
-├── ds-basics.pdf            # digitalSTROM specification reference
 └── translations/
     └── en.json              # English translations
 ```
