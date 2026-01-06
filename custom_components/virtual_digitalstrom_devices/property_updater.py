@@ -2,11 +2,13 @@
 
 This module provides methods to update CONFIG and STATE properties with:
 - CONFIG updates: Persisted to YAML storage
-- STATE updates: Push values to mapped Home Assistant entities + selective persistence
+- STATE updates: 
+  - OUTPUT/CONTROL properties: Push values to mapped HA entities + selective persistence
+  - INPUT properties (sensors, binary inputs): Persist only, NOT pushed (read-only)
 
 Based on COMPLETE_PROPERTY_CLASSIFICATION.md:
 - 81 CONFIG properties (always persisted)
-- 45 STATE properties (selectively persisted, pushed to HA entities)
+- 45 STATE properties (selectively persisted, OUTPUT properties pushed to HA entities)
 - 22 META properties (auto-calculated, not directly updatable)
 """
 
@@ -193,7 +195,14 @@ class ConfigPropertyUpdater:
 
 
 class StatePropertyUpdater:
-    """Handles updates to STATE properties with HA entity pushing."""
+    """Handles updates to STATE properties with selective HA entity pushing.
+    
+    STATE properties fall into two categories:
+    1. OUTPUT/CONTROL properties: Pushed to HA entities + selectively persisted
+       - channel.value, control.heatingLevel, etc.
+    2. INPUT properties: Persisted only, NOT pushed to HA (read-only inputs)
+       - sensor.value, binary.value (these come FROM HA entities via listeners)
+    """
     
     def __init__(
         self,
@@ -224,6 +233,18 @@ class StatePropertyUpdater:
             StatePropertyType.CONNECTION_STATUS,
             StatePropertyType.SYSTEM_STATUS,
         }
+        
+        # Read-only input properties that should NOT be pushed to HA entities
+        # These are INPUT values that come FROM sensors/binary inputs, not outputs
+        self.read_only_input_properties = {
+            StatePropertyType.SENSOR_VALUE,
+            StatePropertyType.BINARY_VALUE,
+            StatePropertyType.BINARY_EXTENDED_VALUE,
+            StatePropertyType.SENSOR_CONTEXT_ID,
+            StatePropertyType.SENSOR_CONTEXT_MSG,
+            StatePropertyType.SENSOR_ERROR,
+            StatePropertyType.BINARY_ERROR,
+        }
     
     async def update_state_property(
         self,
@@ -233,11 +254,19 @@ class StatePropertyUpdater:
         index: Optional[int] = None,
         persist: Optional[bool] = None,
     ) -> bool:
-        """Update a STATE property and push to mapped HA entity.
+        """Update a STATE property with selective HA entity pushing.
         
         STATE properties are runtime values. This method:
-        1. Pushes the new value to the mapped Home Assistant entity
-        2. Optionally persists the value based on property type
+        1. For OUTPUT/CONTROL properties: Pushes value to mapped HA entity + selective persistence
+        2. For INPUT properties (sensors, binary inputs): Persists only, does NOT push to HA
+        
+        INPUT properties (read-only, NOT pushed):
+        - sensor.value, binary.value - These come FROM HA entities via listeners
+        - sensor.contextId, sensor.contextMsg, sensor.error
+        - binary.extendedValue, binary.error
+        
+        OUTPUT/CONTROL properties (pushed to HA):
+        - channel.value, control.heatingLevel, control.coolingLevel, etc.
         
         Args:
             device_id: Device identifier
@@ -260,13 +289,22 @@ class StatePropertyUpdater:
             # Get entity mapping from device attributes
             entity_mapping = self._get_entity_mapping(device, property_type, index)
             
+            # Check if this is a read-only input property
+            is_read_only_input = property_type in self.read_only_input_properties
+            
             if not entity_mapping:
                 _LOGGER.warning(
                     f"No entity mapping for {property_type.value}[{index}] on device {device_id}"
                 )
                 # Still persist locally even if no mapping exists
+            elif is_read_only_input:
+                # Read-only input properties (sensors, binary inputs) should NOT be pushed to HA
+                # These are INPUT values that come FROM HA entities via listeners
+                _LOGGER.debug(
+                    f"Skipping push for read-only input property {property_type.value} (value persisted only)"
+                )
             else:
-                # Push value to Home Assistant entity
+                # Push value to Home Assistant entity (for output/control properties)
                 await self._push_to_ha_entity(entity_mapping, value, property_type)
             
             # Decide whether to persist
@@ -315,8 +353,11 @@ class StatePropertyUpdater:
                 # Get entity mapping
                 entity_mapping = self._get_entity_mapping(device, property_type, index)
                 
-                if entity_mapping:
-                    # Push to HA entity
+                # Check if this is a read-only input property
+                is_read_only_input = property_type in self.read_only_input_properties
+                
+                if entity_mapping and not is_read_only_input:
+                    # Push to HA entity (skip for read-only inputs)
                     await self._push_to_ha_entity(entity_mapping, value, property_type)
                 
                 # Check persistence

@@ -95,24 +95,44 @@ All CONFIG property changes are **immediately persisted** to YAML:
 ## STATE Property Updates
 
 STATE properties are runtime values that:
-1. **Push to mapped Home Assistant entities** (if mapping exists)
+1. **Push to mapped Home Assistant entities** (for OUTPUT/CONTROL properties only)
 2. **Selectively persist** based on property type and use case
+3. **Read-only INPUT properties** (sensor values, binary input values) are persisted but NOT pushed to HA
+
+### Property Direction
+
+**OUTPUT/CONTROL Properties** (Pushed to HA + Persisted):
+- `channel[i].value` - Push to light/cover entities + persist for immediate display
+- `control.heatingLevel` - Push to climate entities + MUST persist for DSS outage
+- `control.coolingLevel` - Push to climate entities + MUST persist
+- `control.ventilationLevel` - Push to climate entities + MUST persist
+- `output.localPriority` - Push to relevant entities
+- `connection_status`, `system_status` - Push to status entities
+
+**INPUT Properties** (Persisted ONLY, NOT pushed):
+- `sensor[i].value` - Read from sensor entities, persist to avoid waiting after restart
+- `binary[i].value` - Read from binary_sensor entities, persist last known state
+- `binary[i].extendedValue` - Read from entities, persist only
+- `sensor[i].contextId`, `sensor[i].contextMsg` - Read from entities, persist only
+- `button[i].value` - Read from button entities (transient, not persisted by default)
 
 ### Examples of STATE Properties
 
-**Always Persisted (Critical):**
+**Always Persisted (Critical OUTPUT/CONTROL):**
 - `control.heatingLevel` - MUST persist for heating radiator during DSS outage
 - `control.coolingLevel` - MUST persist for climate control
 - `control.ventilationLevel` - MUST persist for fan control
 
-**Recommended Persisted:**
-- `sensor[i].value` - Persist to avoid waiting for slow sensors after restart
-- `channel[i].value` - Persist for immediate display after restart
-- `binary[i].value` - Persist last known state
-- `connection_status`, `system_status` - Persist system state
+**Recommended Persisted (INPUT - Read-Only):**
+- `sensor[i].value` - Persist to avoid waiting for slow sensors after restart (NOT pushed to HA)
+- `binary[i].value` - Persist last known state (NOT pushed to HA)
+
+**Recommended Persisted (OUTPUT):**
+- `channel[i].value` - Persist for immediate display after restart (pushed to HA)
+- `connection_status`, `system_status` - Persist system state (pushed to HA)
 
 **Not Persisted (Transient):**
-- `button[i].value` - Transient button press events
+- `button[i].value` - Transient button press events (read from HA, not pushed back)
 - `button[i].actionId` - Transient action events
 
 ### Usage
@@ -120,7 +140,7 @@ STATE properties are runtime values that:
 ```python
 from .state_listener import StatePropertyType
 
-# Update channel value (brightness)
+# Update channel value (brightness) - OUTPUT property
 # Pushes to light.living_room entity AND persists locally
 await updater.update_property(
     device_id="living_room_light",
@@ -129,8 +149,9 @@ await updater.update_property(
     index=0,
 )
 
-# Update sensor value (temperature)
-# Pushes to sensor.temperature entity AND persists
+# Update sensor value (temperature) - INPUT property (READ-ONLY)
+# Does NOT push to sensor.temperature (read-only input from sensor)
+# Only persists locally to avoid waiting for slow sensors
 await updater.update_property(
     device_id="temp_sensor",
     property_type=StatePropertyType.SENSOR_VALUE.value,
@@ -139,8 +160,9 @@ await updater.update_property(
     persist_state=True,  # Force persistence
 )
 
-# Update button value (transient event)
-# Pushes to binary_sensor.button entity, does NOT persist
+# Update button value (transient event) - INPUT property
+# Does NOT push to binary_sensor.button (read-only input from button)
+# Does NOT persist (transient event)
 await updater.update_property(
     device_id="button_panel",
     property_type=StatePropertyType.BUTTON_VALUE.value,
@@ -245,17 +267,18 @@ Format: `"property[index].subproperty": "entity_id"` or `"entity_id@attribute"`
 
 ### Persistence Strategy
 
-| Property Type | Auto-Persist | Reason |
-|--------------|--------------|---------|
-| `control.heatingLevel` | ✅ Always | CRITICAL: Radiator must work during DSS outage |
-| `control.coolingLevel` | ✅ Always | CRITICAL: Climate control continuity |
-| `control.ventilationLevel` | ✅ Always | CRITICAL: Fan control continuity |
-| `sensor[i].value` | ✅ Yes | Avoid waiting for slow sensors after restart |
-| `channel[i].value` | ✅ Yes | Immediate display after restart |
-| `binary[i].value` | ✅ Yes | Show last known state |
-| `connection_status` | ✅ Yes | System status visibility |
-| `button[i].value` | ❌ No | Transient event |
-| `button[i].actionId` | ❌ No | Transient event |
+| Property Type | Auto-Persist | Push to HA | Reason |
+|--------------|--------------|------------|---------|
+| **CONFIG Properties** | ✅ Always | ❌ No | Device description must never be lost |
+| `control.heatingLevel` | ✅ Always | ✅ Yes | CRITICAL: Radiator must work during DSS outage |
+| `control.coolingLevel` | ✅ Always | ✅ Yes | CRITICAL: Climate control continuity |
+| `control.ventilationLevel` | ✅ Always | ✅ Yes | CRITICAL: Fan control continuity |
+| `channel[i].value` | ✅ Yes | ✅ Yes | Immediate display after restart, push to lights/covers |
+| `sensor[i].value` | ✅ Yes | ❌ No | INPUT: Read from sensor entities, avoid waiting after restart |
+| `binary[i].value` | ✅ Yes | ❌ No | INPUT: Read from binary_sensor entities, show last state |
+| `connection_status` | ✅ Yes | ✅ Yes | System status visibility |
+| `button[i].value` | ❌ No | ❌ No | INPUT: Transient event from button |
+| `button[i].actionId` | ❌ No | ❌ No | INPUT: Transient event |
 
 ## Integration Usage
 

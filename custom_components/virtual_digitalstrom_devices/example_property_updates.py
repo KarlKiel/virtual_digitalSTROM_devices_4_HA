@@ -2,7 +2,9 @@
 
 This script shows how to update CONFIG and STATE properties with:
 - CONFIG updates: Always persisted to YAML
-- STATE updates: Pushed to mapped HA entities + selective persistence
+- STATE updates: 
+  - OUTPUT/CONTROL properties: Pushed to mapped HA entities + selective persistence
+  - INPUT properties (sensors, binary inputs): Persisted only, NOT pushed to HA (read-only)
 """
 
 from homeassistant.core import HomeAssistant
@@ -84,8 +86,10 @@ async def example_2_update_state_properties(
     )
     print(f"✓ Updated channel[0] to 75% (pushed to HA entity)")
     
-    # Update sensor value
-    # For sensors with slow update cycles, we persist the value
+    # Update sensor value (READ-ONLY INPUT)
+    # Sensor values are INPUT properties (read from HA entities via listeners)
+    # They are NOT pushed back to HA entities (read-only)
+    # We persist the value to avoid waiting for slow sensors after restart
     await updater.update_property(
         device_id=device_id,
         property_type=StatePropertyType.SENSOR_VALUE.value,
@@ -93,10 +97,11 @@ async def example_2_update_state_properties(
         index=0,
         persist_state=True,  # Force persistence
     )
-    print(f"✓ Updated sensor[0] to 23.5°C (pushed to HA entity + persisted)")
+    print(f"✓ Updated sensor[0] to 23.5°C (persisted only, NOT pushed - read-only input)")
     
-    # Update button value (transient event)
-    # Button clicks are transient and not persisted by default
+    # Update button value (transient event, READ-ONLY INPUT)
+    # Button clicks are INPUT events (read from HA entities)
+    # NOT pushed back to HA entities and not persisted by default
     await updater.update_property(
         device_id=device_id,
         property_type=StatePropertyType.BUTTON_VALUE.value,
