@@ -48,6 +48,21 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     return {"title": data["name"]}
 
 
+def _extract_category_name(category_value: str) -> str:
+    """Extract the category display name from the color group option.
+    
+    Args:
+        category_value: The color value (e.g., 'yellow')
+        
+    Returns:
+        The category name (e.g., 'Lights')
+    """
+    category_display = COLOR_GROUP_OPTIONS.get(category_value, category_value)
+    # Extract just the category name (before the dash)
+    category_name = category_display.split(" - ")[0] if " - " in category_display else category_display
+    return category_name
+
+
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Virtual digitalSTROM Devices."""
 
@@ -108,10 +123,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             category_value = user_input["category"]
             self._data = {"category": category_value}
             
-            # Get the descriptive name from the COLOR_GROUP_OPTIONS
-            category_display = COLOR_GROUP_OPTIONS.get(category_value, category_value)
-            # Extract just the category name (before the dash)
-            category_name = category_display.split(" - ")[0] if " - " in category_display else category_display
+            # Get the display name for the title
+            category_name = _extract_category_name(category_value)
             
             # For now, we'll just create an entry with the category
             # Future steps will be added to configure the device details
