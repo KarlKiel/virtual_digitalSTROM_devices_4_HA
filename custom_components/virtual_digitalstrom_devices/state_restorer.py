@@ -8,6 +8,7 @@ Home Assistant entities.
 from __future__ import annotations
 
 import logging
+import re
 from typing import Any, Optional
 
 from homeassistant.core import HomeAssistant
@@ -231,7 +232,7 @@ class StateRestorer:
                     property_type=property_type,
                     value=value,
                     index=index,
-                    persist=False,  # Don't re-persist during restoration
+                    persist=False,  # Avoid duplicate persistence - value already exists in storage
                 )
                 _LOGGER.debug(
                     "Pushed restored value to HA entity for %s[%s]",
@@ -266,8 +267,6 @@ class StateRestorer:
         Returns:
             Tuple of (StatePropertyType, index) or (None, None) if invalid
         """
-        import re
-        
         # Pattern: "property.name[index]" or "property.name"
         pattern = r"^(.+?)(?:\[(\d+)\])?$"
         match = re.match(pattern, key)
