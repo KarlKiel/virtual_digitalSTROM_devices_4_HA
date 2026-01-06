@@ -29,21 +29,21 @@ class DSColor(str, Enum):
 class DSGroupID(int, Enum):
     """digitalSTROM group IDs."""
     
-    SINGLE_DEVICE = 0  # White color group - Individual appliances (fridge, coffee maker, etc.)
-    LIGHTS = 1
-    BLINDS = 2
-    HEATING = 3
-    AUDIO = 4
-    VIDEO = 5
-    SECURITY = 6  # Red color group - Alarms, fire, panic systems
-    ACCESS = 7    # Green color group - Doors, doorbells, access control
-    JOKER = 8
-    COOLING = 9
-    VENTILATION = 10
-    WINDOW = 11
-    RECIRCULATION = 12
-    TEMPERATURE_CONTROL = 48
-    APARTMENT_VENTILATION = 64
+    SINGLE_DEVICE = 0         # White color group - Individual appliances (fridge, coffee maker, etc.)
+    LIGHTS = 1                # Yellow color group - Room lights, garden lights, building illuminations
+    BLINDS = 2                # Gray color group - Shading and blind control
+    HEATING = 3               # Blue color group - Heating, cooling, ventilation, temperature control
+    AUDIO = 4                 # Cyan color group - Audio playback devices
+    VIDEO = 5                 # Magenta color group - TV and video devices
+    SECURITY = 6              # Red color group - Alarms, fire, panic systems
+    ACCESS = 7                # Green color group - Doors, doorbells, access control
+    JOKER = 8                 # Black color group - Configurable/customizable devices
+    COOLING = 9               # Climate control - Cooling systems
+    VENTILATION = 10          # Climate control - Ventilation systems
+    WINDOW = 11               # Climate control - Windows
+    RECIRCULATION = 12        # Climate control - Recirculation systems
+    TEMPERATURE_CONTROL = 48  # Climate control - Temperature control
+    APARTMENT_VENTILATION = 64  # Climate control - Apartment ventilation
 
 
 class DSPrimaryChannel(str, Enum):

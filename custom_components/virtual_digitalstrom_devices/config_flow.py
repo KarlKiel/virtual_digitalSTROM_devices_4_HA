@@ -216,8 +216,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         config_entry_id=self.config_entry.entry_id,
                         identifiers={(DOMAIN, device.dsid)},
                         name=device.name,
-                        manufacturer=DEFAULT_VENDOR,
-                        model=f"{category_name} Device",
+                        manufacturer=device.vendor_name,
+                        model=device.model,
                         via_device=(DOMAIN, vdc_dsuid),  # Link to vDC hub
                     )
                     _LOGGER.info("Created virtual device: %s (category: %s)", device.name, category_name)
