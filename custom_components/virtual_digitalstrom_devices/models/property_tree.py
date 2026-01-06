@@ -1,10 +1,40 @@
 """vDC Property Tree Structures.
 
 This module defines the hierarchical property tree structure as specified in
-vDC-API-properties July 2022, Sections 4.1.2, 4.1.3, and 4.1.4.
+vDC-API-properties July 2022.
 
-The 'configurations' property (Section 4.1.1) is a list of property elements where
-each configuration contains nested structures for inputs, outputs/channels, and scenes.
+IMPORTANT: Property Element Hierarchy
+======================================
+The vDC specification defines a nested property element structure at every level:
+
+1. vDC level (Integration):
+   - Common properties (Chapter 2)
+   - vDC properties (Chapter 3)
+   - capabilities: list[vdSD property elements]
+
+2. vdSD level (Device):
+   - Common properties (Chapter 2)
+   - vdSD properties (Chapter 4.1)
+   - configurations: list[configuration property elements]
+
+3. Configuration level (Section 4.1.2-4.1.4):
+   - Inputs (4.2, 4.3, 4.4): list[input property elements]
+   - Outputs (4.8): list[output property elements]
+   - Channels (4.9): list[channel property elements]
+   - Scenes (4.10): list[scene property elements]
+
+4. Each input/output/channel/scene is itself a property element with:
+   - Descriptions: invariable properties
+   - Settings: persistently stored properties
+   - States: runtime properties
+
+Current Implementation Note:
+----------------------------
+This module currently stores simplified references (IDs) to inputs/outputs/scenes.
+For full vDC API compliance, each should be a complete property element structure
+containing descriptions, settings, and states as defined in chapters 4.2-4.10.
+
+See docs/external/vdc_properties.py for complete property element definitions.
 """
 
 from __future__ import annotations
