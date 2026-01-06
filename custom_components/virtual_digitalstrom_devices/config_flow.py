@@ -204,23 +204,17 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             
             # Add to storage
             if device_storage.add_device(device):
-                # Register device in Home Assistant's device registry as a child of the vDC hub
+                # Register device in Home Assistant's device registry directly under the integration
                 device_reg = dr.async_get(self.hass)
                 
-                # Get the vDC hub device identifier
-                vdc_data = self.hass.data.get(DOMAIN, {}).get(self.config_entry.entry_id, {})
-                vdc_dsuid = vdc_data.get("vdc_dsuid")
-                
-                if vdc_dsuid:
-                    device_reg.async_get_or_create(
-                        config_entry_id=self.config_entry.entry_id,
-                        identifiers={(DOMAIN, device.dsid)},
-                        name=device.name,
-                        manufacturer=device.vendor_name,
-                        model=device.model,
-                        via_device=(DOMAIN, vdc_dsuid),  # Link to vDC hub
-                    )
-                    _LOGGER.info("Created virtual device: %s (category: %s)", device.name, category_name)
+                device_reg.async_get_or_create(
+                    config_entry_id=self.config_entry.entry_id,
+                    identifiers={(DOMAIN, device.dsid)},
+                    name=device.name,
+                    manufacturer=device.vendor_name,
+                    model=device.model,
+                )
+                _LOGGER.info("Created virtual device: %s (category: %s)", device.name, category_name)
                 
                 # Return to main menu after successful device creation
                 return self.async_abort(reason="device_created")
