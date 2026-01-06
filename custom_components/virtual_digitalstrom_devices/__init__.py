@@ -9,12 +9,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN, STORAGE_FILE, STATE_LISTENER_MAPPINGS_FILE
+from .const import DOMAIN, STORAGE_FILE, STATE_LISTENER_MAPPINGS_FILE, VDC_CONFIG_FILE, CONF_DSS_PORT
 from .device_storage import DeviceStorage
 from .state_listener_manager import StateListenerManager
 from .device_listener_configurator import DeviceListenerConfigurator
 from .property_updater import PropertyUpdater
 from .state_restorer import restore_states_on_startup
+from .vdc_manager import VdcManager
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,6 +26,22 @@ PLATFORMS: list[Platform] = []
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Virtual digitalSTROM Devices from a config entry."""
     _LOGGER.debug("Setting up Virtual digitalSTROM Devices integration")
+    
+    # Initialize vDC manager and create/update vDC entity
+    vdc_config_path = Path(hass.config.path(VDC_CONFIG_FILE))
+    vdc_manager = VdcManager(vdc_config_path)
+    
+    # Get DSS port from config entry
+    dss_port = entry.data.get(CONF_DSS_PORT, 8440)
+    
+    # Create or update vDC entity with specified properties
+    vdc_config = vdc_manager.create_or_update_vdc(dss_port=dss_port)
+    _LOGGER.info(
+        "vDC entity initialized: dsUID=%s, name=%s, port=%d",
+        vdc_config.get("dsUID"),
+        vdc_config.get("name"),
+        dss_port
+    )
     
     # Initialize device storage
     storage_path = Path(hass.config.path(STORAGE_FILE))
@@ -87,6 +104,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Store an instance of the integration data
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {
+        "vdc_manager": vdc_manager,
         "device_storage": device_storage,
         "state_listener_manager": state_listener_manager,
         "device_configurator": device_configurator,

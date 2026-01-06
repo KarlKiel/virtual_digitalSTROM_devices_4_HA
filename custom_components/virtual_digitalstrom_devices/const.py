@@ -21,6 +21,11 @@ DEFAULT_NAME = "Virtual digitalSTROM Devices"
 # Storage
 STORAGE_FILE = "virtual_digitalstrom_devices.yaml"
 STATE_LISTENER_MAPPINGS_FILE = "virtual_digitalstrom_listener_mappings.yaml"
+VDC_CONFIG_FILE = "virtual_digitalstrom_vdc_config.yaml"
+
+# Configuration keys
+CONF_DSS_PORT = "dss_port"
+DEFAULT_DSS_PORT = 8440
 
 # Export device class information
 __all__ = [
@@ -28,6 +33,9 @@ __all__ = [
     "DEFAULT_NAME",
     "STORAGE_FILE",
     "STATE_LISTENER_MAPPINGS_FILE",
+    "VDC_CONFIG_FILE",
+    "CONF_DSS_PORT",
+    "DEFAULT_DSS_PORT",
     "DEVICE_CLASSES",
     "ADDITIONAL_COLOR_GROUPS",
     "DSColor",
