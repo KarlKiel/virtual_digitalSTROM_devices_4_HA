@@ -17,11 +17,18 @@ except ImportError:
     # Fallback if dsuid_generator is not available
     def generate_dsuid(**kwargs):
         """Fallback dSUID generator using UUID4."""
-        return str(uuid.uuid4()).replace('-', '').upper() + '00'  # 34 hex chars
+        # Generate UUID4 and convert to 17 bytes (136 bits) for dSUID
+        import uuid
+        uuid_bytes = uuid.uuid4().bytes  # 16 bytes
+        dsuid_bytes = uuid_bytes + b'\x00'  # Add 1 byte padding = 17 bytes
+        return dsuid_bytes.hex().upper()  # Convert to 34 hex characters
     
     def generate_random_dsuid():
         """Fallback random dSUID generator."""
-        return str(uuid.uuid4()).replace('-', '').upper() + '00'  # 34 hex chars
+        import uuid
+        uuid_bytes = uuid.uuid4().bytes  # 16 bytes
+        dsuid_bytes = uuid_bytes + b'\x00'  # Add 1 byte padding = 17 bytes
+        return dsuid_bytes.hex().upper()  # Convert to 34 hex characters
 
 
 @dataclass
@@ -157,6 +164,10 @@ class VirtualDevice:
     def to_dict(self) -> dict[str, Any]:
         """Convert device to dictionary for YAML serialization.
         
+        Note: Optional properties are only included if they have non-empty values.
+        This keeps the serialized output clean and reduces storage size while
+        maintaining full backward compatibility.
+        
         Returns:
             Dictionary representation of the device with all properties
         """
@@ -183,6 +194,7 @@ class VirtualDevice:
         }
         
         # Add optional new properties if they have values
+        # This keeps the YAML output clean and reduces file size
         if self.hardware_model_guid:
             result["hardware_model_guid"] = self.hardware_model_guid
         if self.vendor_name:

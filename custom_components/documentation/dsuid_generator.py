@@ -15,7 +15,6 @@ Generation rules (in priority order):
 5. Nothing from above → Generate random UUIDv4 (must be persisted!)
 """
 
-import hashlib
 import uuid
 import re
 from typing import Optional, Union
@@ -59,6 +58,10 @@ class SGTIN96:
     - 20-40-bit Company Prefix
     - 4-24-bit Item Reference
     - 38-bit Serial Number
+    
+    Note: This is a simplified implementation. For production use with
+    real SGTIN-96 values, proper bit packing based on the partition
+    value would be required to correctly encode variable-length fields.
     """
     header: int  # 8 bits, should be 0x30
     filter_value: int  # 3 bits
@@ -68,9 +71,13 @@ class SGTIN96:
     serial_number: int  # 38 bits
     
     def to_bytes(self) -> bytes:
-        """Convert SGTIN-96 to 12 bytes (96 bits)."""
-        # This is a simplified implementation
-        # In production, you'd need proper bit packing
+        """
+        Convert SGTIN-96 to 12 bytes (96 bits).
+        
+        Note: This is a simplified implementation that assumes fixed
+        bit lengths. For real SGTIN-96 encoding, the company_prefix
+        and item_reference lengths vary based on the partition value.
+        """
         value = (self.header << 88) | \
                 (self.filter_value << 85) | \
                 (self.partition << 82) | \
