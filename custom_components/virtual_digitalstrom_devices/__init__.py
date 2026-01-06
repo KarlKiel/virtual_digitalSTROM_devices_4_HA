@@ -14,6 +14,7 @@ from .device_storage import DeviceStorage
 from .state_listener_manager import StateListenerManager
 from .device_listener_configurator import DeviceListenerConfigurator
 from .property_updater import PropertyUpdater
+from .state_restorer import restore_states_on_startup
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,6 +39,25 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     
     # Initialize property updater
     property_updater = PropertyUpdater(hass, device_storage)
+    
+    # Restore persisted state values from YAML storage
+    # This happens BEFORE listeners start tracking new changes
+    _LOGGER.info("Restoring persisted state values from storage")
+    restore_stats = await restore_states_on_startup(
+        hass=hass,
+        device_storage=device_storage,
+        property_updater=property_updater,
+        push_to_entities=False,  # Don't push to entities on startup (entities may not be ready)
+    )
+    
+    if restore_stats["total_properties_restored"] > 0:
+        _LOGGER.info(
+            "Restored %d state properties across %d devices",
+            restore_stats["total_properties_restored"],
+            restore_stats["devices_with_state"],
+        )
+    else:
+        _LOGGER.debug("No persisted state values found to restore")
     
     # Load existing listener mappings
     await state_listener_manager.async_load_mappings()
