@@ -33,11 +33,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     vdc_config_path = integration_dir / VDC_CONFIG_FILE
     vdc_manager = VdcManager(vdc_config_path)
     
+    # Load vDC configuration in executor to avoid blocking I/O
+    await hass.async_add_executor_job(vdc_manager.load)
+    
     # Get DSS port from config entry
     dss_port = entry.data.get(CONF_DSS_PORT, 8440)
     
-    # Create or update vDC entity with specified properties
-    vdc_config = vdc_manager.create_or_update_vdc(dss_port=dss_port)
+    # Create or update vDC entity with specified properties (use executor to avoid blocking I/O)
+    vdc_config = await hass.async_add_executor_job(vdc_manager.create_or_update_vdc, dss_port)
     _LOGGER.info(
         "vDC entity initialized: dsUID=%s, name=%s, port=%d",
         vdc_config.get("dsUID"),
@@ -48,6 +51,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Initialize device storage
     storage_path = integration_dir / STORAGE_FILE
     device_storage = DeviceStorage(storage_path)
+    
+    # Load device storage in executor to avoid blocking I/O
+    await hass.async_add_executor_job(device_storage.load)
     
     # Initialize state listener manager
     listener_mappings_path = integration_dir / STATE_LISTENER_MAPPINGS_FILE
@@ -160,3 +166,49 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN].pop(entry.entry_id)
     
     return unload_ok
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, entry: ConfigEntry, device_entry: dr.DeviceEntry
+) -> bool:
+    """Remove a device from the integration.
+    
+    This is called when a user deletes a device from the UI via the device's 3-dot menu.
+    
+    Args:
+        hass: Home Assistant instance
+        entry: Config entry for this integration
+        device_entry: Device entry to remove
+        
+    Returns:
+        True if device was successfully removed from storage, False otherwise.
+        Note: The device is automatically removed from the device registry by Home Assistant.
+    """
+    _LOGGER.debug("Removing device: %s", device_entry.name)
+    
+    # Get the integration directory path
+    integration_dir = Path(__file__).parent
+    
+    # Initialize device storage
+    storage_path = integration_dir / STORAGE_FILE
+    device_storage = DeviceStorage(storage_path)
+    
+    # Find the device by its identifier (dsid) using the DOMAIN
+    dsid = next(
+        (identifier[1] for identifier in device_entry.identifiers if identifier[0] == DOMAIN),
+        None
+    )
+    
+    if dsid is None:
+        _LOGGER.error("Could not find device identifier for %s", device_entry.name)
+        return False
+    
+    _LOGGER.debug("Found device dsid: %s", dsid)
+    
+    # Remove device from storage by dsid
+    if device_storage.delete_device_by_dsid(dsid):
+        _LOGGER.info("Successfully removed device %s (dsid: %s) from storage", device_entry.name, dsid)
+        return True
+    
+    _LOGGER.error("Failed to remove device %s (dsid: %s) from storage", device_entry.name, dsid)
+    return False

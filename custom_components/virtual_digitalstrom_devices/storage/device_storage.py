@@ -38,6 +38,11 @@ class DeviceStorage:
         """
         self.storage_path = storage_path
         self._devices: dict[str, VirtualDevice] = {}
+        # Don't load in __init__ to avoid blocking I/O in async context
+        # Call load() separately when needed
+    
+    def load(self) -> None:
+        """Load devices from YAML file (synchronous)."""
         self._load()
     
     def _load(self) -> None:
@@ -174,6 +179,37 @@ class DeviceStorage:
             VirtualDevice instance if found, None otherwise
         """
         return self._devices.get(device_id)
+    
+    def get_device_by_dsid(self, dsid: str) -> VirtualDevice | None:
+        """Get a device by dsid.
+        
+        Args:
+            dsid: digitalSTROM UID of the device to retrieve
+            
+        Returns:
+            VirtualDevice instance if found, None otherwise
+        """
+        for device in self._devices.values():
+            if device.dsid == dsid:
+                return device
+        return None
+    
+    def delete_device_by_dsid(self, dsid: str) -> bool:
+        """Delete a device from storage by dsid.
+        
+        Args:
+            dsid: digitalSTROM UID of the device to delete
+            
+        Returns:
+            True if device was deleted successfully, False if device not found
+        """
+        # Find the device_id for this dsid
+        for device_id, device in self._devices.items():
+            if device.dsid == dsid:
+                return self.delete_device(device_id)
+        
+        _LOGGER.warning("Device with dsid %s not found", dsid)
+        return False
     
     def get_all_devices(self) -> list[VirtualDevice]:
         """Get all devices.
