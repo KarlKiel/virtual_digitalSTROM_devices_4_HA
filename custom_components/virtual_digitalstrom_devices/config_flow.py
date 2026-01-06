@@ -153,14 +153,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Handle the user step - only for integration setup."""
+        """Handle the user step - integration setup or device addition."""
         # Check if we already have a config entry (integration already set up)
         existing_entries = self._async_current_entries()
         
         if existing_entries:
-            # Integration is already set up
-            # Only allow one instance of this integration
-            return self.async_abort(reason="single_instance_allowed")
+            # Integration is already set up - add a new device
+            _LOGGER.debug("Integration exists, starting device creation flow")
+            return await self.async_step_device_category(user_input)
         
         # First time setup - configure the integration
         _LOGGER.debug("First time setup, configuring integration")
@@ -169,8 +169,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_pair(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Handle device pairing - triggered by 'Add Device' button."""
-        _LOGGER.debug("Device pairing initiated")
+        """Handle device pairing - for compatibility with hub integrations."""
+        _LOGGER.debug("Device pairing initiated (redirecting to device_category)")
         return await self.async_step_device_category(user_input)
 
     async def async_step_integration_setup(
