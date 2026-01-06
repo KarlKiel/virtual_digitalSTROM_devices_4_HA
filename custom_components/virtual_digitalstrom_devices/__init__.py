@@ -160,3 +160,38 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN].pop(entry.entry_id)
     
     return unload_ok
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, entry: ConfigEntry, device_entry: dr.DeviceEntry
+) -> bool:
+    """Remove a device from the integration.
+    
+    This is called when a user deletes a device from the UI via the device's 3-dot menu.
+    """
+    _LOGGER.debug("Removing device: %s", device_entry.name)
+    
+    # Get the integration directory path
+    integration_dir = Path(__file__).parent
+    
+    # Initialize device storage
+    storage_path = integration_dir / STORAGE_FILE
+    device_storage = DeviceStorage(storage_path)
+    
+    # Find the device by its identifier (dsid)
+    device_identifiers = device_entry.identifiers
+    for identifier in device_identifiers:
+        if identifier[0] == DOMAIN:
+            dsid = identifier[1]
+            _LOGGER.debug("Found device dsid: %s", dsid)
+            
+            # Remove device from storage
+            if device_storage.delete_device(dsid):
+                _LOGGER.info("Successfully removed device %s (dsid: %s) from storage", device_entry.name, dsid)
+                return True
+            else:
+                _LOGGER.error("Failed to remove device %s (dsid: %s) from storage", device_entry.name, dsid)
+                return False
+    
+    _LOGGER.error("Could not find device identifier for %s", device_entry.name)
+    return False
