@@ -4,6 +4,18 @@ This module manages the vDC entity that represents the virtual device connector
 as defined in the vDC-API-properties specification (July 2022), chapters 2 and 3.
 
 The vDC entity is created during integration installation and persisted to YAML storage.
+
+Chapter 2 Properties (Common properties for all addressable entities):
+- Required: dsUID, displayId, type, model, modelVersion, modelUID
+- Optional: hardwareVersion, hardwareGuid, hardwareModelGuid, vendorName, vendorGuid,
+           oemGuid, oemModelGuid, deviceClass, deviceClassVersion, name
+
+Chapter 3 Properties (vDC-level specific properties):
+- implementationId: Implementation identifier
+- configURL: Configuration web UI URL
+- apiVersion: vDC API version
+
+All properties are persisted to YAML storage and available for use by the integration.
 """
 
 from __future__ import annotations
@@ -42,7 +54,47 @@ class VdcManager:
     
     The vDC entity represents the virtual device connector itself and contains
     properties as defined in the vDC-API-properties specification chapters 2 and 3.
+    
+    Managed Properties:
+    -------------------
+    Chapter 2 - Common Properties (Required by this implementation):
+        - dsUID: digitalSTROM Unique Identifier (34 hex chars)
+        - displayId: Human-readable identification
+        - type: Entity type ("vDC")
+        - model: Model description
+        - modelVersion: Firmware/software version
+        - modelUID: Unique ID for functional model
+        - vendorName: Vendor/manufacturer name (set to default)
+        - name: User-friendly device name (set to default)
+        
+    Chapter 2 - Common Properties (Optional, preserved if set):
+        - hardwareVersion: Hardware version string
+        - hardwareGuid: Hardware GUID in URN format
+        - hardwareModelGuid: Hardware model GUID
+        - vendorGuid: Vendor GUID
+        - oemGuid: OEM product GUID
+        - oemModelGuid: OEM model GUID
+        - deviceClass: Device class profile name
+        - deviceClassVersion: Device class version
+        
+    Chapter 3 - vDC-Level Properties:
+        - implementationId: Implementation identifier
+        - configURL: Configuration web UI URL
+        - apiVersion: vDC API version
+        
+    All properties are persisted to YAML storage and can be retrieved or updated
+    using the provided methods.
     """
+    
+    # Optional properties that can be updated after vDC creation
+    UPDATABLE_PROPERTIES = [
+        # Chapter 2 optional properties
+        "hardwareVersion", "hardwareGuid", "hardwareModelGuid",
+        "vendorGuid", "oemGuid", "oemModelGuid",
+        "deviceClass", "deviceClassVersion",
+        # Chapter 3 vDC-level properties
+        "implementationId", "configURL", "apiVersion"
+    ]
     
     def __init__(self, storage_path: Path) -> None:
         """Initialize the vDC manager.
@@ -124,15 +176,21 @@ class VdcManager:
     def create_or_update_vdc(self, dss_port: int) -> dict[str, Any]:
         """Create or update the vDC entity configuration.
         
-        This creates a vDC entity with the properties specified in the problem statement:
-        - displayId: "KarlKiels generic vDC"
-        - type: "vDC"
-        - model: "vDC to control 3rd party devices in DS"
-        - modelVersion: "1.0"
-        - modelUID: "SW-gvDC400"
-        - vendorName: "KarlKiel"
-        - name: "KarlKiels generic vDC"
-        - dsUID: Generated from MAC address using the dsuid_generator
+        This creates a vDC entity with all properties from:
+        - Chapter 2: Common properties for all addressable entities (required and optional)
+        - Chapter 3: vDC-level specific properties
+        
+        Properties set by this implementation:
+        - Required: dsUID, displayId, type, model, modelVersion, modelUID
+        - Set to defaults: vendorName, name (both set to implementation defaults)
+        
+        Optional Chapter 2 properties (preserved if already set):
+        - hardwareVersion, hardwareGuid, hardwareModelGuid
+        - vendorGuid, oemGuid, oemModelGuid
+        - deviceClass, deviceClassVersion
+        
+        Optional Chapter 3 properties (preserved if already set):
+        - implementationId, configURL, apiVersion
         
         Args:
             dss_port: TCP port for digitalSTROM server connection
@@ -140,36 +198,55 @@ class VdcManager:
         Returns:
             The vDC configuration dictionary
         """
+        # Preserve existing configuration to avoid losing optional properties
+        existing_config = self._vdc_config.copy()
+        
         # Check if vDC already exists and has a dsUID
-        if self._vdc_config.get("dsUID"):
+        if existing_config.get("dsUID"):
             _LOGGER.info("vDC entity already exists, updating configuration")
-            existing_dsuid = self._vdc_config["dsUID"]
+            existing_dsuid = existing_config["dsUID"]
         else:
             # Generate new dsUID from MAC address
             mac_address = self._get_mac_address()
             existing_dsuid = generate_dsuid(mac_address=mac_address)
             _LOGGER.info("Generated new dsUID for vDC: %s (from MAC: %s)", existing_dsuid, mac_address)
         
-        # Create/update vDC configuration with specified properties
-        self._vdc_config = {
-            # Common properties for vDC entity (per vDC spec Section 2)
-            "dsUID": existing_dsuid,
-            "displayId": VDC_DISPLAY_ID,
-            "type": VDC_TYPE,
-            "model": VDC_MODEL,
-            "modelVersion": VDC_MODEL_VERSION,
-            "modelUID": VDC_MODEL_UID,
-            "vendorName": VDC_VENDOR_NAME,
-            "name": VDC_NAME,
-            # Additional configuration
-            "dss_port": dss_port,
-            "created_at": self._vdc_config.get("created_at", None),
-            "updated_at": None,  # Will be set to current timestamp when saved
-        }
+        # Update vDC configuration with required and optional properties
+        # Start with existing config to preserve optional properties
+        self._vdc_config = existing_config
         
-        # Set timestamps
+        # Set/update required Chapter 2 common properties (vDC spec Section 2)
+        self._vdc_config["dsUID"] = existing_dsuid
+        self._vdc_config["displayId"] = VDC_DISPLAY_ID
+        self._vdc_config["type"] = VDC_TYPE
+        self._vdc_config["model"] = VDC_MODEL
+        self._vdc_config["modelVersion"] = VDC_MODEL_VERSION
+        self._vdc_config["modelUID"] = VDC_MODEL_UID
+        self._vdc_config["vendorName"] = VDC_VENDOR_NAME
+        self._vdc_config["name"] = VDC_NAME
+        
+        # Optional Chapter 2 properties - only set if not already present
+        # These can be set externally and should be preserved
+        self._vdc_config.setdefault("hardwareVersion", "")
+        self._vdc_config.setdefault("hardwareGuid", "")
+        self._vdc_config.setdefault("hardwareModelGuid", "")
+        self._vdc_config.setdefault("vendorGuid", "")
+        self._vdc_config.setdefault("oemGuid", "")
+        self._vdc_config.setdefault("oemModelGuid", "")
+        self._vdc_config.setdefault("deviceClass", "")
+        self._vdc_config.setdefault("deviceClassVersion", "")
+        
+        # Chapter 3: vDC-level specific properties (optional)
+        self._vdc_config.setdefault("implementationId", "")  # Implementation identifier
+        self._vdc_config.setdefault("configURL", "")  # Configuration web UI URL
+        self._vdc_config.setdefault("apiVersion", "1.0")  # vDC API version
+        
+        # Integration-specific configuration
+        self._vdc_config["dss_port"] = dss_port
+        
+        # Set timestamps (metadata)
         now = datetime.now().isoformat()
-        if not self._vdc_config.get("created_at"):
+        if "created_at" not in self._vdc_config or not self._vdc_config.get("created_at"):
             self._vdc_config["created_at"] = now
         self._vdc_config["updated_at"] = now
         
@@ -218,3 +295,43 @@ class VdcManager:
             The dsUID string or None if not configured
         """
         return self._vdc_config.get("dsUID")
+    
+    def update_vdc_property(self, property_name: str, value: Any) -> bool:
+        """Update a specific vDC property and save to storage.
+        
+        This allows updating optional Chapter 2 and Chapter 3 properties
+        without recreating the entire configuration.
+        
+        Args:
+            property_name: Name of the property to update (must be in UPDATABLE_PROPERTIES)
+            value: New value for the property
+            
+        Returns:
+            True if property was updated and saved successfully, False otherwise
+        """
+        if property_name not in self.UPDATABLE_PROPERTIES:
+            _LOGGER.warning(
+                "Property '%s' is not updatable. Only optional properties can be updated. "
+                "Allowed properties: %s",
+                property_name,
+                ", ".join(self.UPDATABLE_PROPERTIES)
+            )
+            return False
+        
+        try:
+            self._vdc_config[property_name] = value
+            self._vdc_config["updated_at"] = datetime.now().isoformat()
+            self._save()
+            _LOGGER.info("Updated vDC property '%s' to '%s'", property_name, value)
+            return True
+        except Exception as e:
+            _LOGGER.error("Failed to update vDC property '%s': %s", property_name, e)
+            return False
+    
+    def get_all_properties(self) -> dict[str, Any]:
+        """Get all vDC properties including Chapter 2 and Chapter 3 properties.
+        
+        Returns:
+            Dictionary containing all vDC properties
+        """
+        return self.get_vdc_config()

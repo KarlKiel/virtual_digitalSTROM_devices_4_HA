@@ -20,10 +20,10 @@ This integration will be available through HACS in the future.
 1. In Home Assistant, go to **Settings** → **Devices & Services**
 2. Click the **+ Add Integration** button
 3. Search for "Virtual digitalSTROM Devices"
-4. Follow the configuration steps to set up the vDC hub
+4. Follow the configuration steps to set up the integration (configure the vDC server port)
 5. Once set up, click **Configure** on the integration to add virtual devices
 
-The integration creates a vDC (Virtual Device Connector) hub, and all virtual devices are registered as child devices of this hub.
+The integration manages virtual digitalSTROM devices directly under the integration entry.
 
 ## Features
 

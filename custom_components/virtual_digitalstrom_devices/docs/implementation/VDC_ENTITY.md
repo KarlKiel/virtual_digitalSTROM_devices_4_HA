@@ -8,8 +8,11 @@ The vDC (Virtual Device Connector) entity represents the integration itself as a
 
 The vDC entity is configured with the following properties as defined in the vDC-API-properties specification (July 2022), chapters 2 and 3:
 
+### Chapter 2: Common Properties (Required)
+
 | Property | Value | Description |
 |----------|-------|-------------|
+| `dsUID` | Generated from MAC address | digitalSTROM Unique Identifier (34 hex characters) |
 | `displayId` | "KarlKiels generic vDC" | Human-readable identification |
 | `type` | "vDC" | Entity type (vDC = Virtual Device Connector) |
 | `model` | "vDC to control 3rd party devices in DS" | Device model description |
@@ -17,7 +20,33 @@ The vDC entity is configured with the following properties as defined in the vDC
 | `modelUID` | "SW-gvDC400" | Unique identifier for the functional model |
 | `vendorName` | "KarlKiel" | Vendor/manufacturer name |
 | `name` | "KarlKiels generic vDC" | Device name |
-| `dsUID` | Generated from MAC address | digitalSTROM Unique Identifier (34 hex characters) |
+
+### Chapter 2: Common Properties (Optional)
+
+These properties are available and persisted but initially empty. They can be set using the `update_vdc_property()` method:
+
+| Property | Description |
+|----------|-------------|
+| `hardwareVersion` | Hardware version string |
+| `hardwareGuid` | Hardware GUID in URN format (e.g., gs1:, macaddress:, uuid:) |
+| `hardwareModelGuid` | Hardware model GUID |
+| `vendorGuid` | Vendor GUID |
+| `oemGuid` | OEM product GUID |
+| `oemModelGuid` | OEM model GUID |
+| `deviceClass` | Device class profile name |
+| `deviceClassVersion` | Device class version |
+
+### Chapter 3: vDC-Level Properties
+
+These vDC-specific properties are available for advanced configuration:
+
+| Property | Default Value | Description |
+|----------|---------------|-------------|
+| `implementationId` | "" (empty) | Implementation identifier |
+| `configURL` | "" (empty) | Configuration web UI URL |
+| `apiVersion` | "1.0" | vDC API version |
+
+All properties are automatically persisted to YAML storage and preserved across updates and restarts.
 
 ## dsUID Generation
 
@@ -65,7 +94,10 @@ custom_components/virtual_digitalstrom_devices/virtual_digitalstrom_vdc_config.y
 
 ### Example YAML Structure
 
+The YAML file includes all required Chapter 2 properties and optional properties (shown with empty values if not set):
+
 ```yaml
+# Chapter 2: Required Common Properties
 dsUID: 54BD4C445AC35C2698630AEB23F6BE4E00
 displayId: KarlKiels generic vDC
 type: vDC
@@ -74,10 +106,31 @@ modelVersion: '1.0'
 modelUID: SW-gvDC400
 vendorName: KarlKiel
 name: KarlKiels generic vDC
+
+# Chapter 2: Optional Common Properties
+hardwareVersion: ''
+hardwareGuid: ''
+hardwareModelGuid: ''
+vendorGuid: ''
+oemGuid: ''
+oemModelGuid: ''
+deviceClass: ''
+deviceClassVersion: ''
+
+# Chapter 3: vDC-Level Properties
+implementationId: ''
+configURL: ''
+apiVersion: '1.0'
+
+# Integration Configuration
 dss_port: 8440
+
+# Metadata (timestamps)
 created_at: '2026-01-06T08:15:54.591458'
 updated_at: '2026-01-06T08:15:54.591458'
 ```
+
+Note: Empty optional properties may be omitted from the YAML file but are still accessible programmatically.
 
 ## Lifecycle
 
@@ -102,9 +155,30 @@ updated_at: '2026-01-06T08:15:54.591458'
 
 When the integration configuration is updated (e.g., changing the DSS port):
 - The dsUID is preserved
-- Only the updated fields are changed
+- Required properties are updated with their defined values
+- Optional Chapter 2 and Chapter 3 properties are preserved if previously set
 - Timestamps are updated
 - Configuration is saved to YAML
+
+### Updating Optional Properties
+
+Optional Chapter 2 and Chapter 3 properties can be updated programmatically:
+
+```python
+# Access vDC manager
+vdc_manager = hass.data[DOMAIN][entry.entry_id]["vdc_manager"]
+
+# Update an optional property
+vdc_manager.update_vdc_property("hardwareVersion", "v2.1")
+vdc_manager.update_vdc_property("configURL", "http://example.com/config")
+vdc_manager.update_vdc_property("implementationId", "ha-vdc-impl-001")
+```
+
+Updatable properties include:
+- `hardwareVersion`, `hardwareGuid`, `hardwareModelGuid`
+- `vendorGuid`, `oemGuid`, `oemModelGuid`
+- `deviceClass`, `deviceClassVersion`
+- `implementationId`, `configURL`, `apiVersion`
 
 ## Implementation
 
@@ -136,6 +210,12 @@ vdc_config = vdc_manager.get_vdc_config()
 # Get specific properties
 dsuid = vdc_manager.get_dsuid()
 dss_port = vdc_manager.get_dss_port()
+
+# Get all properties including Chapter 2 and Chapter 3
+all_properties = vdc_manager.get_all_properties()
+
+# Update optional properties
+vdc_manager.update_vdc_property("hardwareVersion", "1.2.3")
 
 # Check if vDC exists
 if vdc_manager.has_vdc():
