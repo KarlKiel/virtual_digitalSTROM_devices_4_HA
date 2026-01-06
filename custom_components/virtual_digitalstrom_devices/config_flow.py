@@ -89,19 +89,26 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Initialize the config flow."""
         self._data: dict[str, Any] = {}
 
+    def _get_device_storage(self) -> DeviceStorage:
+        """Get the device storage instance."""
+        integration_dir = Path(__file__).parent
+        storage_path = integration_dir / STORAGE_FILE
+        return DeviceStorage(storage_path)
+
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Handle the user step - only for integration setup."""
+        """Handle the user step - integration setup or adding devices."""
         # Check if we already have a config entry (integration already set up)
         existing_entries = self._async_current_entries()
         
         if existing_entries:
-            # Integration is already set up
-            # Only allow one instance of this integration
-            return self.async_abort(reason="single_instance_allowed")
+            # Integration is already set up - add a new device
+            _LOGGER.debug("Integration exists, starting device creation flow")
+            return await self.async_step_device_category(user_input)
         
         # First time setup - configure the integration
+        _LOGGER.debug("First time setup, configuring integration")
         return await self.async_step_integration_setup(user_input)
 
     async def async_step_integration_setup(
@@ -126,6 +133,67 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="integration_setup",
             data_schema=STEP_USER_DATA_SCHEMA,
+            errors=errors,
+        )
+
+    async def async_step_device_category(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle the device category selection step."""
+        errors: dict[str, str] = {}
+        
+        if user_input is not None:
+            # Store the selected category (color value like 'yellow')
+            category_value = user_input["category"]
+            self._data = {"category": category_value}
+            
+            # Get the display name for the title
+            category_name = _extract_category_name(category_value)
+            
+            # Get device storage
+            device_storage = self._get_device_storage()
+            
+            # Get group_id from color
+            group_id = COLOR_TO_GROUP_ID.get(category_value, 0)
+            
+            # Create a new virtual device
+            device = VirtualDevice(
+                name=f"Virtual {category_name} Device",
+                group_id=group_id,
+                device_class=category_value,
+                model=f"{category_name} Device",
+                vendor_name=DEFAULT_VENDOR,
+            )
+            
+            # Add to storage
+            if device_storage.add_device(device):
+                # Register device in Home Assistant's device registry
+                # Get the first (and only) config entry for this integration
+                existing_entries = self._async_current_entries()
+                if existing_entries:
+                    device_reg = dr.async_get(self.hass)
+                    device_reg.async_get_or_create(
+                        config_entry_id=existing_entries[0].entry_id,
+                        identifiers={(DOMAIN, device.dsid)},
+                        name=device.name,
+                        manufacturer=device.vendor_name,
+                        model=device.model,
+                    )
+                    _LOGGER.info("Created virtual device: %s (category: %s)", device.name, category_name)
+                
+                # Abort with success message
+                return self.async_abort(reason="device_created")
+            else:
+                errors["base"] = "device_creation_failed"
+
+        # Create schema for category selection
+        category_schema = vol.Schema({
+            vol.Required("category"): vol.In(COLOR_GROUP_OPTIONS),
+        })
+
+        return self.async_show_form(
+            step_id="device_category",
+            data_schema=category_schema,
             errors=errors,
         )
     
@@ -156,7 +224,46 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Manage the options - entry point."""
-        return await self.async_step_device_menu(user_input)
+        return await self.async_step_main_menu(user_input)
+
+    async def async_step_main_menu(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Show main options menu."""
+        return self.async_show_menu(
+            step_id="main_menu",
+            menu_options=["integration_settings", "device_menu"],
+        )
+
+    async def async_step_integration_settings(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle integration settings (port configuration)."""
+        errors: dict[str, str] = {}
+        
+        if user_input is not None:
+            # Update the config entry with new port
+            self.hass.config_entries.async_update_entry(
+                self.config_entry,
+                data={**self.config_entry.data, CONF_DSS_PORT: user_input[CONF_DSS_PORT]},
+            )
+            return self.async_create_entry(title="", data={})
+        
+        # Get current port value
+        current_port = self.config_entry.data.get(CONF_DSS_PORT, DEFAULT_DSS_PORT)
+        
+        # Schema for port configuration
+        settings_schema = vol.Schema({
+            vol.Required(CONF_DSS_PORT, default=current_port): vol.All(
+                vol.Coerce(int), vol.Range(min=1, max=65535)
+            ),
+        })
+        
+        return self.async_show_form(
+            step_id="integration_settings",
+            data_schema=settings_schema,
+            errors=errors,
+        )
 
     async def async_step_device_menu(
         self, user_input: dict[str, Any] | None = None

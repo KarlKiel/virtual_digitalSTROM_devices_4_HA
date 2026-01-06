@@ -38,6 +38,21 @@
   },
   "options": {
     "step": {
+      "main_menu": {
+        "title": "Virtual digitalSTROM Devices Settings",
+        "description": "Configure integration settings or manage devices",
+        "menu_options": {
+          "integration_settings": "Integration Settings",
+          "device_menu": "Manage Devices"
+        }
+      },
+      "integration_settings": {
+        "title": "Integration Settings",
+        "description": "Configure the vDC integration settings",
+        "data": {
+          "dss_port": "digitalSTROM Server TCP Port"
+        }
+      },
       "device_menu": {
         "title": "Manage Virtual Devices",
         "description": "Add or view virtual devices",
