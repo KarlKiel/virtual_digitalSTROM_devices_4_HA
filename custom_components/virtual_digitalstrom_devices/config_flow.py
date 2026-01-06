@@ -138,8 +138,8 @@ async def _create_virtual_device(
         vendor_name=DEFAULT_VENDOR,
     )
     
-    # Add to storage
-    if device_storage.add_device(device):
+    # Add to storage (use executor to avoid blocking I/O during save)
+    if await hass.async_add_executor_job(device_storage.add_device, device):
         # Register device in Home Assistant's device registry
         device_reg = dr.async_get(hass)
         device_reg.async_get_or_create(

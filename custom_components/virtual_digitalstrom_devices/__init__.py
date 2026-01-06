@@ -39,8 +39,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Get DSS port from config entry
     dss_port = entry.data.get(CONF_DSS_PORT, 8440)
     
-    # Create or update vDC entity with specified properties
-    vdc_config = vdc_manager.create_or_update_vdc(dss_port=dss_port)
+    # Create or update vDC entity with specified properties (use executor to avoid blocking I/O)
+    vdc_config = await hass.async_add_executor_job(vdc_manager.create_or_update_vdc, dss_port)
     _LOGGER.info(
         "vDC entity initialized: dsUID=%s, name=%s, port=%d",
         vdc_config.get("dsUID"),
