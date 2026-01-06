@@ -13,6 +13,7 @@ from .const import DOMAIN, STORAGE_FILE, STATE_LISTENER_MAPPINGS_FILE
 from .device_storage import DeviceStorage
 from .state_listener_manager import StateListenerManager
 from .device_listener_configurator import DeviceListenerConfigurator
+from .property_updater import PropertyUpdater
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,6 +35,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     
     # Initialize device listener configurator
     device_configurator = DeviceListenerConfigurator(hass, state_listener_manager)
+    
+    # Initialize property updater
+    property_updater = PropertyUpdater(hass, device_storage)
     
     # Load existing listener mappings
     await state_listener_manager.async_load_mappings()
@@ -66,6 +70,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "device_storage": device_storage,
         "state_listener_manager": state_listener_manager,
         "device_configurator": device_configurator,
+        "property_updater": property_updater,
     }
     
     # Forward the setup to the platforms
