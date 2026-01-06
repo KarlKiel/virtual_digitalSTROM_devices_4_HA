@@ -250,7 +250,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         if not devices:
             device_list = "No virtual devices created yet."
         else:
-            device_list = "\n".join([f"• {device.name} (ID: {device.device_id})" for device in devices])
+            device_list = "\n".join([f"• {device.name} (dsUID: {device.dsid})" for device in devices])
         
         return self.async_show_form(
             step_id="list_devices",

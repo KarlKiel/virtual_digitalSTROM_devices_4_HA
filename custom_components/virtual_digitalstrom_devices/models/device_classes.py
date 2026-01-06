@@ -29,6 +29,7 @@ class DSColor(str, Enum):
 class DSGroupID(int, Enum):
     """digitalSTROM group IDs."""
     
+    SINGLE_DEVICE = 0  # White color group - Individual appliances (fridge, coffee maker, etc.)
     LIGHTS = 1
     BLINDS = 2
     HEATING = 3
@@ -43,7 +44,6 @@ class DSGroupID(int, Enum):
     RECIRCULATION = 12
     TEMPERATURE_CONTROL = 48
     APARTMENT_VENTILATION = 64
-    SINGLE_DEVICE = 0  # White color group - Individual appliances (fridge, coffee maker, etc.)
 
 
 class DSPrimaryChannel(str, Enum):
