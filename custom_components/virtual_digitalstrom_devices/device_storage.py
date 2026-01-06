@@ -123,6 +123,29 @@ class DeviceStorage:
         _LOGGER.info("Updated device: %s", device_id)
         return True
     
+    def save_device(self, device: VirtualDevice) -> bool:
+        """Save an existing device's current state.
+        
+        This method saves a device object that has already been modified,
+        useful when you've made multiple changes to a device instance
+        and want to persist them all at once.
+        
+        Args:
+            device: VirtualDevice instance to save
+            
+        Returns:
+            True if device was saved successfully, False if device not found
+        """
+        if device.device_id not in self._devices:
+            _LOGGER.warning("Device with id %s not found", device.device_id)
+            return False
+        
+        # Update the reference in storage (in case it's a different object)
+        self._devices[device.device_id] = device
+        self._save()
+        _LOGGER.debug("Saved device: %s", device.device_id)
+        return True
+    
     def delete_device(self, device_id: str) -> bool:
         """Delete a device from storage.
         
