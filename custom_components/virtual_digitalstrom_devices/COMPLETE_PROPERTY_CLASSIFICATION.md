@@ -72,7 +72,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ## 2. General Device Properties (Section 4.1.1)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | primaryGroup | integer | CONFIG | ✅ | ✅ | ❌ | [R] | dS class number (1=Lights, 2=Blinds, etc.) |
 | zoneID | integer | CONFIG | ✅ | ✅ | ❌ | [R] | Global dS Zone ID |
@@ -87,7 +87,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 3.1 Button Input Descriptions[i] (Section 4.2.1)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | name | string | CONFIG | ❌ | ✅ | ❌ | [R] | Button name (describes hardware) |
 | dsIndex | integer | CONFIG | ❌ | ✅ | ✅ | [R] | Index 0..N-1, auto-assigned |
@@ -98,7 +98,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 3.2 Button Input Settings[i] (Section 4.2.2)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | group | integer | CONFIG | ✅ | ✅ | ❌ | [R] | Associated group |
 | function | integer | CONFIG | ✅ | ✅ | ❌ | [R] | Button function (0..15) |
@@ -109,7 +109,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 3.3 Button Input States[i] (Section 4.2.3)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | value | boolean/null | STATE | ❌ | ✅ | ❌ | [R] | Current button state, persist last value |
 | clickType | enum | META | ❌ | ✅ | ✅ | [R] | Last click type (0-14,255), **derived by physical device behavior** |
@@ -125,7 +125,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 4.1 Binary Input Descriptions[i] (Section 4.3.1)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | name | string | CONFIG | ❌ | ✅ | ❌ | [R] | Input name (describes hardware) |
 | dsIndex | integer | CONFIG | ❌ | ✅ | ✅ | [R] | Index 0..N-1, auto-assigned |
@@ -136,14 +136,14 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 4.2 Binary Input Settings[i] (Section 4.3.2)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | group | integer | CONFIG | ✅ | ✅ | ❌ | [R] | Associated group |
 | sensorFunction | enum | CONFIG | ✅ | ✅ | ❌ | [R] | Sensor function (0-23) |
 
 ### 4.3 Binary Input States[i] (Section 4.3.3)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | value | boolean/null | STATE | ❌ | ✅ | ❌ | [R] | Current binary state, persist last value |
 | extendedValue | integer/null | STATE | ❌ | ✅ | ❌ | [O] | Optional extended value, persist |
@@ -157,7 +157,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 5.1 Sensor Descriptions[i] (Section 4.4.1)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | name | string | CONFIG | ❌ | ✅ | ❌ | [R] | Sensor name (describes hardware) |
 | dsIndex | integer | CONFIG | ❌ | ✅ | ✅ | [R] | Index 0..N-1, auto-assigned |
@@ -171,7 +171,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 5.2 Sensor Settings[i] (Section 4.4.2)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | group | integer | CONFIG | ✅ | ✅ | ❌ | [R] | Associated group |
 | minPushInterval | float | CONFIG | ✅ | ✅ | ❌ | [R] | Minimum push interval (default: 2.0) |
@@ -179,7 +179,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 5.3 Sensor States[i] (Section 4.4.3)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | value | float/null | STATE | ❌ | ✅ | ❌ | [R] | Current sensor reading, **persist for slow sensors** |
 | age | float/null | META | ❌ | ❌ | ✅ | [R] | Time since last reading, calculated from timestamp |
@@ -194,7 +194,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 6.1 Device Action Descriptions[name] (Section 4.5.1)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | name | string | CONFIG | ❌ | ✅ | ❌ | [R] | Action name (describes capability) |
 | params | list | CONFIG | ❌ | ✅ | ❌ | [R] | Parameter descriptions |
@@ -209,7 +209,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 6.2 Standard Actions[name] (Section 4.5.2)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | name | string | CONFIG | ✅ | ✅ | ❌ | [R] | Standard action name (with "std." prefix) |
 | action | string | CONFIG | ✅ | ✅ | ❌ | [R] | Action identifier |
@@ -217,7 +217,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 6.3 Custom Actions[name] (Section 4.5.3)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | name | string | CONFIG | ✅ | ✅ | ❌ | [R] | Custom action name (with "custom." prefix) |
 | action | string | CONFIG | ✅ | ✅ | ❌ | [R] | Action identifier |
@@ -226,7 +226,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 6.4 Dynamic Device Actions[name] (Section 4.5.4)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | name | string | STATE | ❌ | ✅ | ❌ | [R] | Dynamic action name (with "dynamic." prefix), runtime-generated |
 | title | string | STATE | ❌ | ✅ | ❌ | [R] | Display title, runtime-generated |
@@ -237,7 +237,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 7.1 Device State Descriptions[name]
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | name | string | CONFIG | ❌ | ✅ | ❌ | [R] | State name (describes state type) |
 | options | dict | CONFIG | ❌ | ✅ | ❌ | [R] | Valid state values (id:value pairs) |
@@ -245,7 +245,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 7.2 Device States[name]
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | name | string | STATE | ❌ | ✅ | ❌ | [R] | State name |
 | value | string | STATE | ❌ | ✅ | ❌ | [R] | Current state value, persist |
@@ -256,7 +256,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 8.1 Device Property Descriptions[name]
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | name | string | CONFIG | ❌ | ✅ | ❌ | [R] | Property name (describes property type) |
 | type | string | CONFIG | ❌ | ✅ | ❌ | [R] | 'numeric'/'enumeration'/'string' |
@@ -269,7 +269,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 8.2 Device Properties[name]
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | name | string | STATE | ❌ | ✅ | ❌ | [R] | Property name |
 | value | any | STATE | ❌ | ✅ | ❌ | [R] | Current property value, persist |
@@ -280,7 +280,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 9.1 Device Event Descriptions[name]
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | name | string | CONFIG | ❌ | ✅ | ❌ | [R] | Event name (describes event type) |
 | description | string | CONFIG | ❌ | ✅ | ❌ | [R] | Event description |
@@ -291,7 +291,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 10.1 Output Description (Section 4.8.1)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | defaultGroup | integer | CONFIG | ❌ | ✅ | ❌ | [R] | Default group assignment (describes device) |
 | name | string | CONFIG | ❌ | ✅ | ❌ | [R] | Output name (describes hardware) |
@@ -303,7 +303,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 10.2 Output Settings (Section 4.8.2)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | activeGroup | integer | CONFIG | ✅ | ✅ | ❌ | [R] | Currently active group |
 | groups | dict[int,bool] | CONFIG | ✅ | ✅ | ❌ | [R] | Group memberships (1..63) |
@@ -322,7 +322,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 10.3 Output State (Section 4.8.3)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | localPriority | boolean | STATE | ❌ | ✅ | ❌ | [R] | Local priority active, persist |
 | error | enum | STATE | ❌ | ✅ | ❌ | [R] | Error code (0-6), persist |
@@ -333,7 +333,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 11.1 Channel Descriptions[i] (Section 4.9.1)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | name | string | CONFIG | ❌ | ✅ | ❌ | [R] | Channel name (describes hardware) |
 | channelType | integer | CONFIG | ❌ | ✅ | ❌ | [R] | Channel type ID (0=default, 1=brightness, etc.) |
@@ -344,13 +344,13 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 11.2 Channel Settings[i] (Section 4.9.2)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
-| (none) | - | - | - | - | - | No settings currently defined |
+| (none) | - | - | - | - | - | - | No settings currently defined |
 
 ### 11.3 Channel States[i] (Section 4.9.3)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | value | float | STATE | ❌ | ✅ | ❌ | [R] | Current channel value (e.g., brightness 0..100%), **persist** |
 | age | float/null | META | ❌ | ❌ | ✅ | [R] | Time since last update, calculated from timestamp |
@@ -362,7 +362,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 12.1 Scenes[scene_number] (0..127)
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | channels | dict | CONFIG | ✅ | ✅ | ❌ | [R] | Channel values for this scene (by channel_type_id) |
 | effect | enum | CONFIG | ✅ | ✅ | ❌ | [R] | Transition effect (0-4: no effect, smooth, slow, very slow, blink) |
@@ -371,7 +371,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ### 12.2 Scene Channel Values[channel_type_id]
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | value | float | CONFIG | ✅ | ✅ | ❌ | [R] | Target channel value for this scene |
 | dontCare | boolean | CONFIG | ✅ | ✅ | ❌ | [R] | Ignore this channel in scene |
@@ -381,7 +381,7 @@ These properties must be supported by all addressable entities (vdSD, vDC, vDC h
 
 ## 13. Control Values (Section 4.11)
 
-These control values are **persisted STATE properties** to maintain device functionality during connection interruptions (e.g., heating radiator needs to remember target temperature if DSS connection breaks).
+These control values are **persisted STATE properties** to maintain device functionality during connection interruptions (e.g., heating radiator needs to remember target temperature if DSS connection [...]
 
 | Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|---------|-------|
@@ -398,7 +398,7 @@ These control values are **persisted STATE properties** to maintain device funct
 
 These are additional properties specific to our Home Assistant integration:
 
-| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt |
+| Property | Type | Category | Write-Enabled | Persisted | Derived/Calc | Req/Opt | Notes |
 |----------|------|----------|---------------|-----------|--------------|-------|---------|
 | name | string | CONFIG | ✅ | ✅ | ❌ | [R] | User-friendly device name (HA-specific) |
 | ha_entity_id | string | CONFIG | ✅ | ✅ | ❌ | [R] | Home Assistant entity mapping |
@@ -489,3 +489,4 @@ to_full_vdc_dict()    # Complete vDC API tree
 ---
 
 **This corrected classification addresses the clarifications provided and is ready for implementation.**
+```
