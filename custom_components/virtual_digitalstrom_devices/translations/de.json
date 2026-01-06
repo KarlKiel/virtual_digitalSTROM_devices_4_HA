@@ -30,14 +30,12 @@
           "name": "Gerätename",
           "model": "Modell",
           "display_id": "Anzeige-ID",
-          "primary_group_selection": "Primäre Gruppe",
           "next_action": "Nächster Schritt"
         },
         "data_description": {
           "name": "Ein benutzerfreundlicher Name für Ihr Gerät (z.B. 'Wohnzimmer Deckenleuchte', 'Schlafzimmer Jalousie').\n\nDieser Name wird verwendet, um das Gerät in Home Assistant und digitalSTROM zu identifizieren.",
           "model": "Der Modellname Ihres Geräts (z.B. 'LED Dimmer', 'Smart Jalousie Steuerung').\n\nDies identifiziert den Typ oder das Modell des physischen oder virtuellen Geräts.",
           "display_id": "Eine menschenlesbare Kennung, die auf einem physischen Gerät aufgedruckt wäre (z.B. Seriennummer, Gerätelabel).\n\nDies kann für virtuelle Geräte leer gelassen werden.",
-          "primary_group_selection": "Wählen Sie die primäre Funktionsgruppe für dieses Joker-Gerät.\n\nJoker (Schwarz) Geräte sind konfigurierbar und können jeder Funktionsgruppe zugewiesen werden. Dies bestimmt das primäre Verhalten des Geräts und auf welche Szenen es reagiert.\n\n• Gelb (Licht) - Gerät verhält sich wie eine Leuchte\n• Grau (Beschattung) - Gerät steuert Jalousien/Rolläden\n• Blau (Klima) - Gerät für Heizung/Kühlung\n• Cyan (Audio) - Audio-Gerätefunktionen\n• Magenta (Video) - Video/TV-Funktionen\n• Rot (Sicherheit) - Sicherheits-/Alarmfunktionen\n• Grün (Zugang) - Tür-/Zugangskontrolle\n• Weiß (Einzelgeräte) - Haushaltsgerätefunktionen",
           "next_action": "Wählen Sie, was als nächstes zu tun ist:\n\n• ✓ Gerät erstellen (Fertig) - Gerät mit aktuellen Einstellungen speichern\n• ⚙ Erweiterte Konfiguration (Optional) - Zusätzliche Eigenschaften wie Hardware-IDs, Herstellerinformationen usw. konfigurieren\n• ← Zurück zur Kategorieauswahl - Gerätekategorie ändern\n• ✗ Geräteerstellung abbrechen - Abbrechen und Gerät nicht erstellen"
         }
       },
@@ -131,14 +129,12 @@
           "name": "Gerätename",
           "model": "Modell",
           "display_id": "Anzeige-ID",
-          "primary_group_selection": "Primäre Gruppe",
           "next_action": "Nächster Schritt"
         },
         "data_description": {
           "name": "Ein benutzerfreundlicher Name für Ihr Gerät (z.B. 'Wohnzimmer Deckenleuchte', 'Schlafzimmer Jalousie').\n\nDieser Name wird verwendet, um das Gerät in Home Assistant und digitalSTROM zu identifizieren.",
           "model": "Der Modellname Ihres Geräts (z.B. 'LED Dimmer', 'Smart Jalousie Steuerung').\n\nDies identifiziert den Typ oder das Modell des physischen oder virtuellen Geräts.",
           "display_id": "Eine menschenlesbare Kennung, die auf einem physischen Gerät aufgedruckt wäre (z.B. Seriennummer, Gerätelabel).\n\nDies kann für virtuelle Geräte leer gelassen werden.",
-          "primary_group_selection": "Wählen Sie die primäre Funktionsgruppe für dieses Joker-Gerät.\n\nJoker (Schwarz) Geräte sind konfigurierbar und können jeder Funktionsgruppe zugewiesen werden. Dies bestimmt das primäre Verhalten des Geräts und auf welche Szenen es reagiert.\n\n• Gelb (Licht) - Gerät verhält sich wie eine Leuchte\n• Grau (Beschattung) - Gerät steuert Jalousien/Rolläden\n• Blau (Klima) - Gerät für Heizung/Kühlung\n• Cyan (Audio) - Audio-Gerätefunktionen\n• Magenta (Video) - Video/TV-Funktionen\n• Rot (Sicherheit) - Sicherheits-/Alarmfunktionen\n• Grün (Zugang) - Tür-/Zugangskontrolle\n• Weiß (Einzelgeräte) - Haushaltsgerätefunktionen",
           "next_action": "Wählen Sie, was als nächstes zu tun ist:\n\n• ✓ Gerät erstellen (Fertig) - Gerät mit aktuellen Einstellungen speichern\n• ⚙ Erweiterte Konfiguration (Optional) - Zusätzliche Eigenschaften wie Hardware-IDs, Herstellerinformationen usw. konfigurieren\n• ← Zurück zur Kategorieauswahl - Gerätekategorie ändern\n• ✗ Geräteerstellung abbrechen - Abbrechen und Gerät nicht erstellen"
         }
       },
