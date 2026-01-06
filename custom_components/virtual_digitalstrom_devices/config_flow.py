@@ -82,7 +82,7 @@ def _extract_category_name(category_value: str) -> str:
 
 def _get_device_storage() -> DeviceStorage:
     """Get the device storage instance.
-    
+
     Returns:
         DeviceStorage instance
     """
@@ -97,12 +97,12 @@ def _create_virtual_device(
     config_entry_id: str,
 ) -> bool:
     """Create and register a virtual device.
-    
+
     Args:
         hass: Home Assistant instance
         category_value: The device category (color value)
         config_entry_id: The config entry ID to register the device under
-        
+
     Returns:
         True if device was created successfully, False otherwise
     """
