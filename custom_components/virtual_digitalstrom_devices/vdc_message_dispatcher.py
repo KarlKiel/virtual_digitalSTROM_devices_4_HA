@@ -25,6 +25,22 @@ from .virtual_device import VirtualDevice
 _LOGGER = logging.getLogger(__name__)
 
 
+def _safe_get_field(payload: Any, field_name: str, default: Any = None) -> Any:
+    """Safely get a field from a protobuf message.
+    
+    Args:
+        payload: Protobuf message object
+        field_name: Name of the field to get
+        default: Default value if field is not present
+        
+    Returns:
+        Field value if present, otherwise default
+    """
+    if hasattr(payload, "HasField") and payload.HasField(field_name):
+        return getattr(payload, field_name)
+    return default
+
+
 class VdcMessageDispatcher:
     """Dispatcher for handling vDC API messages and integrating with HA."""
     
@@ -212,10 +228,10 @@ class VdcMessageDispatcher:
         payload = parsed_msg.payload
         
         device_dsuids = list(payload.dSUID)
-        scene = payload.scene if payload.HasField("scene") else None
-        force = payload.force if payload.HasField("force") else False
-        group = payload.group if payload.HasField("group") else None
-        zone_id = payload.zone_id if payload.HasField("zone_id") else None
+        scene = _safe_get_field(payload, "scene")
+        force = _safe_get_field(payload, "force", False)
+        group = _safe_get_field(payload, "group")
+        zone_id = _safe_get_field(payload, "zone_id")
         
         _LOGGER.info(
             f"CallScene: devices={device_dsuids}, scene={scene}, "
@@ -244,7 +260,7 @@ class VdcMessageDispatcher:
         payload = parsed_msg.payload
         
         device_dsuids = list(payload.dSUID)
-        scene = payload.scene if payload.HasField("scene") else None
+        scene = _safe_get_field(payload, "scene")
         
         _LOGGER.info(f"SaveScene: devices={device_dsuids}, scene={scene}")
         
@@ -268,10 +284,10 @@ class VdcMessageDispatcher:
         payload = parsed_msg.payload
         
         device_dsuids = list(payload.dSUID)
-        channel = payload.channel if payload.HasField("channel") else None
-        value = payload.value if payload.HasField("value") else None
-        apply_now = payload.apply_now if payload.HasField("apply_now") else True
-        channel_id = payload.channelId if payload.HasField("channelId") else None
+        channel = _safe_get_field(payload, "channel")
+        value = _safe_get_field(payload, "value")
+        apply_now = _safe_get_field(payload, "apply_now", True)
+        channel_id = _safe_get_field(payload, "channelId")
         
         _LOGGER.info(
             f"SetOutputChannelValue: devices={device_dsuids}, "
@@ -517,15 +533,20 @@ class VdcMessageDispatcher:
         Args:
             device: VirtualDevice instance
             scene: Scene number
-            force: Whether to force apply
+            force: Whether to force apply (overrides conditions if True)
         """
         # Look up scene configuration in device attributes
         scenes = device.attributes.get("scenes", {})
         scene_config = scenes.get(str(scene))
         
         if scene_config:
-            _LOGGER.info(f"Applying scene {scene} to device {device.name}")
+            _LOGGER.info(
+                f"Applying scene {scene} to device {device.name} "
+                f"(force={force})"
+            )
             # Apply scene properties
+            # Note: 'force' would typically override dimming operations or local priority
+            # In this simplified implementation, we always apply the scene values
             for prop_name, prop_value in scene_config.items():
                 await self.property_updater.update_property(
                     device_id=device.device_id,
@@ -577,6 +598,13 @@ class VdcMessageDispatcher:
             apply_now: Whether to apply immediately
             channel_id: Channel ID string (API v3)
         """
+        # Return early if no value provided
+        if value is None:
+            _LOGGER.warning(
+                f"No value provided for channel {channel} on device {device.name}"
+            )
+            return
+        
         # Use channel_id if available (API v3), otherwise use index
         channel_index = channel if channel is not None else 0
         
@@ -603,18 +631,35 @@ class VdcMessageDispatcher:
         Args:
             device: VirtualDevice instance
             channel: Channel index
-            mode: Dim mode (1=start dimming, 0=stop, etc.)
+            mode: Dim mode (1=start dimming up, 2=start dimming down, 0=stop)
         """
         _LOGGER.info(
             f"Dimming channel {channel} mode {mode} for device {device.name}"
         )
         
-        # Dimming would typically start/stop a continuous change
-        # This is a simplified implementation
-        # In a full implementation, mode would control:
-        # - 1: start dimming up
-        # - 2: start dimming down
-        # - 0: stop dimming
+        # Dimming implementation notes:
+        # - Mode 1 (dim up): Start continuous brightness increase
+        # - Mode 2 (dim down): Start continuous brightness decrease  
+        # - Mode 0 (stop): Stop dimming at current level
+        # 
+        # Full implementation would:
+        # 1. Store dimming state in device attributes
+        # 2. Start/stop a background task that increments/decrements channel value
+        # 3. Respect min/max bounds and update PropertyUpdater periodically
+        #
+        # For now, we just log the action. Actual dimming would be implemented
+        # when the transport layer and background task infrastructure exists.
+        
+        # Store dimming state for future implementation
+        if "dimming_state" not in device.attributes:
+            device.attributes["dimming_state"] = {}
+        
+        device.attributes["dimming_state"][str(channel)] = {
+            "mode": mode,
+            "active": mode != 0,
+        }
+        
+        self.device_storage.save_device(device)
     
     async def _set_control_value(
         self,
