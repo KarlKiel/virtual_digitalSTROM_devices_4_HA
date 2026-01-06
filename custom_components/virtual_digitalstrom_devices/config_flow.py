@@ -11,13 +11,16 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import DOMAIN, DEFAULT_NAME
+from .const import DOMAIN, DEFAULT_NAME, CONF_DSS_PORT, DEFAULT_DSS_PORT
 
 _LOGGER = logging.getLogger(__name__)
 
 # Configuration schema
 STEP_USER_DATA_SCHEMA = vol.Schema({
     vol.Required("name", default=DEFAULT_NAME): str,
+    vol.Required(CONF_DSS_PORT, default=DEFAULT_DSS_PORT): vol.All(
+        vol.Coerce(int), vol.Range(min=1, max=65535)
+    ),
 })
 
 

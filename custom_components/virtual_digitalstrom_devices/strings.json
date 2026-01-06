@@ -5,7 +5,8 @@
         "title": "Set up Virtual digitalSTROM Devices",
         "description": "Configure the Virtual digitalSTROM Devices integration",
         "data": {
-          "name": "Name"
+          "name": "Name",
+          "dss_port": "digitalSTROM Server TCP Port"
         }
       }
     },
