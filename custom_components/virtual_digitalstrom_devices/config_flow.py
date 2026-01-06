@@ -283,11 +283,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 errors["base"] = "unknown"
         
         # Get current port value with fallback
-        try:
-            current_port = self.config_entry.data.get(CONF_DSS_PORT, DEFAULT_DSS_PORT)
-        except Exception as err:
-            _LOGGER.error("Error getting current port: %s", err, exc_info=True)
-            current_port = DEFAULT_DSS_PORT
+        current_port = self.config_entry.data.get(CONF_DSS_PORT, DEFAULT_DSS_PORT)
         
         # Schema for port configuration
         settings_schema = vol.Schema({
