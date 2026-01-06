@@ -135,8 +135,9 @@ class MessageHandler:
                 exc_info=True,
             )
             # Return error response
+            # Note: vDC dSUID is not needed for generic error responses
             from .message_builder import MessageBuilder
-            builder = MessageBuilder("")  # vDC dSUID not needed for error
+            builder = MessageBuilder("")
             return builder.create_generic_response(
                 code=pb.ERR_MESSAGE_UNKNOWN,
                 description=f"Handler error: {str(e)}",

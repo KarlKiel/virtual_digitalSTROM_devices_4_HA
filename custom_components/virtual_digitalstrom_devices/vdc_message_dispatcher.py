@@ -497,7 +497,8 @@ class VdcMessageDispatcher:
             prop_name = prop.get("name")
             prop_value = prop.get("value")
             
-            if prop_name and prop_value is not None:
+            # Check that name exists and value is present (can be 0, False, empty string, etc.)
+            if prop_name is not None and prop_value is not None:
                 # Use property updater to set the property
                 await self.property_updater.update_property(
                     device_id=device.device_id,
@@ -563,7 +564,7 @@ class VdcMessageDispatcher:
         self,
         device: VirtualDevice,
         channel: Optional[int],
-        value: float,
+        value: Optional[float],
         apply_now: bool,
         channel_id: Optional[str],
     ) -> None:
@@ -572,7 +573,7 @@ class VdcMessageDispatcher:
         Args:
             device: VirtualDevice instance
             channel: Channel index (legacy)
-            value: Channel value
+            value: Channel value (None if not present in payload)
             apply_now: Whether to apply immediately
             channel_id: Channel ID string (API v3)
         """
