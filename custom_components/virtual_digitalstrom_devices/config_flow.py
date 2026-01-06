@@ -80,6 +80,67 @@ def _extract_category_name(category_value: str) -> str:
     return category_name
 
 
+def _get_device_storage() -> DeviceStorage:
+    """Get the device storage instance.
+    
+    Returns:
+        DeviceStorage instance
+    """
+    integration_dir = Path(__file__).parent
+    storage_path = integration_dir / STORAGE_FILE
+    return DeviceStorage(storage_path)
+
+
+def _create_virtual_device(
+    hass: HomeAssistant,
+    category_value: str,
+    config_entry_id: str,
+) -> bool:
+    """Create and register a virtual device.
+    
+    Args:
+        hass: Home Assistant instance
+        category_value: The device category (color value)
+        config_entry_id: The config entry ID to register the device under
+        
+    Returns:
+        True if device was created successfully, False otherwise
+    """
+    # Get the display name for the title
+    category_name = _extract_category_name(category_value)
+    
+    # Get device storage
+    device_storage = _get_device_storage()
+    
+    # Get group_id from color
+    group_id = COLOR_TO_GROUP_ID.get(category_value, 0)
+    
+    # Create a new virtual device
+    device = VirtualDevice(
+        name=f"Virtual {category_name} Device",
+        group_id=group_id,
+        device_class=category_value,
+        model=f"{category_name} Device",
+        vendor_name=DEFAULT_VENDOR,
+    )
+    
+    # Add to storage
+    if device_storage.add_device(device):
+        # Register device in Home Assistant's device registry
+        device_reg = dr.async_get(hass)
+        device_reg.async_get_or_create(
+            config_entry_id=config_entry_id,
+            identifiers={(DOMAIN, device.dsid)},
+            name=device.name,
+            manufacturer=device.vendor_name,
+            model=device.model,
+        )
+        _LOGGER.info("Created virtual device: %s (category: %s)", device.name, category_name)
+        return True
+    
+    return False
+
+
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Virtual digitalSTROM Devices."""
 
@@ -88,12 +149,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         """Initialize the config flow."""
         self._data: dict[str, Any] = {}
-
-    def _get_device_storage(self) -> DeviceStorage:
-        """Get the device storage instance."""
-        integration_dir = Path(__file__).parent
-        storage_path = integration_dir / STORAGE_FILE
-        return DeviceStorage(storage_path)
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -143,46 +198,18 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
         
         if user_input is not None:
-            # Store the selected category (color value like 'yellow')
+            # Store the selected category
             category_value = user_input["category"]
             self._data = {"category": category_value}
             
-            # Get the display name for the title
-            category_name = _extract_category_name(category_value)
-            
-            # Get device storage
-            device_storage = self._get_device_storage()
-            
-            # Get group_id from color
-            group_id = COLOR_TO_GROUP_ID.get(category_value, 0)
-            
-            # Create a new virtual device
-            device = VirtualDevice(
-                name=f"Virtual {category_name} Device",
-                group_id=group_id,
-                device_class=category_value,
-                model=f"{category_name} Device",
-                vendor_name=DEFAULT_VENDOR,
-            )
-            
-            # Add to storage
-            if device_storage.add_device(device):
-                # Register device in Home Assistant's device registry
-                # Get the first (and only) config entry for this integration
-                existing_entries = self._async_current_entries()
-                if existing_entries:
-                    device_reg = dr.async_get(self.hass)
-                    device_reg.async_get_or_create(
-                        config_entry_id=existing_entries[0].entry_id,
-                        identifiers={(DOMAIN, device.dsid)},
-                        name=device.name,
-                        manufacturer=device.vendor_name,
-                        model=device.model,
-                    )
-                    _LOGGER.info("Created virtual device: %s (category: %s)", device.name, category_name)
-                
-                # Abort with success message
-                return self.async_abort(reason="device_created")
+            # Get the first (and only) config entry for this integration
+            existing_entries = self._async_current_entries()
+            if existing_entries:
+                # Create and register the device
+                if _create_virtual_device(self.hass, category_value, existing_entries[0].entry_id):
+                    return self.async_abort(reason="device_created")
+                else:
+                    errors["base"] = "device_creation_failed"
             else:
                 errors["base"] = "device_creation_failed"
 
@@ -213,12 +240,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         """Initialize options flow."""
         self.config_entry = config_entry
         self._data: dict[str, Any] = {}
-
-    def _get_device_storage(self) -> DeviceStorage:
-        """Get the device storage instance."""
-        integration_dir = Path(__file__).parent
-        storage_path = integration_dir / STORAGE_FILE
-        return DeviceStorage(storage_path)
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -287,43 +308,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         errors: dict[str, str] = {}
         
         if user_input is not None:
-            # Store the selected category (color value like 'yellow')
+            # Store the selected category
             category_value = user_input["category"]
             self._data = {"category": category_value}
             
-            # Get the display name for the title
-            category_name = _extract_category_name(category_value)
-            
-            # Get device storage
-            device_storage = self._get_device_storage()
-            
-            # Get group_id from color
-            group_id = COLOR_TO_GROUP_ID.get(category_value, 0)
-            
-            # Create a new virtual device
-            device = VirtualDevice(
-                name=f"Virtual {category_name} Device",
-                group_id=group_id,
-                device_class=category_value,
-                model=f"{category_name} Device",
-                vendor_name=DEFAULT_VENDOR,
-            )
-            
-            # Add to storage
-            if device_storage.add_device(device):
-                # Register device in Home Assistant's device registry directly under the integration
-                device_reg = dr.async_get(self.hass)
-                
-                device_reg.async_get_or_create(
-                    config_entry_id=self.config_entry.entry_id,
-                    identifiers={(DOMAIN, device.dsid)},
-                    name=device.name,
-                    manufacturer=device.vendor_name,
-                    model=device.model,
-                )
-                _LOGGER.info("Created virtual device: %s (category: %s)", device.name, category_name)
-                
-                # Return to main menu after successful device creation
+            # Create and register the device
+            if _create_virtual_device(self.hass, category_value, self.config_entry.entry_id):
                 return self.async_abort(reason="device_created")
             else:
                 errors["base"] = "device_creation_failed"
@@ -344,7 +334,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     ) -> FlowResult:
         """List existing devices."""
         # Get device storage
-        device_storage = self._get_device_storage()
+        device_storage = _get_device_storage()
         
         devices = device_storage.get_all_devices()
         
