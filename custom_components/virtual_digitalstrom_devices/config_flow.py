@@ -271,15 +271,23 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         errors: dict[str, str] = {}
         
         if user_input is not None:
-            # Update the config entry with new port
-            self.hass.config_entries.async_update_entry(
-                self.config_entry,
-                data={**self.config_entry.data, CONF_DSS_PORT: user_input[CONF_DSS_PORT]},
-            )
-            return self.async_create_entry(title="", data={})
+            try:
+                # Update the config entry with new port
+                self.hass.config_entries.async_update_entry(
+                    self.config_entry,
+                    data={**self.config_entry.data, CONF_DSS_PORT: user_input[CONF_DSS_PORT]},
+                )
+                return self.async_create_entry(title="", data={})
+            except Exception as err:
+                _LOGGER.error("Error updating config entry: %s", err, exc_info=True)
+                errors["base"] = "unknown"
         
-        # Get current port value
-        current_port = self.config_entry.data.get(CONF_DSS_PORT, DEFAULT_DSS_PORT)
+        # Get current port value with fallback
+        try:
+            current_port = self.config_entry.data.get(CONF_DSS_PORT, DEFAULT_DSS_PORT)
+        except Exception as err:
+            _LOGGER.error("Error getting current port: %s", err, exc_info=True)
+            current_port = DEFAULT_DSS_PORT
         
         # Schema for port configuration
         settings_schema = vol.Schema({

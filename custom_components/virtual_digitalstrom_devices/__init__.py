@@ -199,9 +199,22 @@ async def async_remove_config_entry_device(
     
     _LOGGER.debug("Found device dsid: %s", dsid)
     
-    # Remove device from storage
-    if device_storage.delete_device(dsid):
-        _LOGGER.info("Successfully removed device %s (dsid: %s) from storage", device_entry.name, dsid)
+    # Find the device in storage by dsid (storage uses device_id as key, not dsid)
+    # We need to iterate through all devices to find the one with matching dsid
+    device_to_delete = None
+    for device_id, device in device_storage._devices.items():
+        if device.dsid == dsid:
+            device_to_delete = device_id
+            break
+    
+    if device_to_delete is None:
+        _LOGGER.error("Could not find device in storage with dsid: %s", dsid)
+        return False
+    
+    # Remove device from storage using device_id
+    if device_storage.delete_device(device_to_delete):
+        _LOGGER.info("Successfully removed device %s (dsid: %s, device_id: %s) from storage", 
+                     device_entry.name, dsid, device_to_delete)
         return True
     
     _LOGGER.error("Failed to remove device %s (dsid: %s) from storage", device_entry.name, dsid)
