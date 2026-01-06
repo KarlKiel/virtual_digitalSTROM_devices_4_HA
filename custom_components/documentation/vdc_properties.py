@@ -558,6 +558,28 @@ class Scene:
 
 
 # =============================================================================
+# Common Properties for All Addressable Entities (vDC Spec Section 2)
+# =============================================================================
+
+@dataclass
+class CommonEntityProperties:
+    """
+    Common properties for all addressable entities (vDC Spec Section 2).
+    
+    These properties must be supported by all addressable entities:
+    vdSD (virtual device), vDC, vDChost, vdSM
+    """
+    ds_uid: str  # dSUID - 34 hex characters (2*17)
+    display_id: str  # Human-readable identification printed on physical device
+    type: str  # Entity type: "vdSD", "vDC", "vDChost", "vdSM"
+    model: str  # Human-readable model string
+    model_version: str  # Model version (firmware version)
+    model_uid: str  # digitalSTROM system unique ID for functional model
+    hardware_version: Optional[str] = None  # Hardware version string
+    hardware_guid: Optional[str] = None  # Hardware GUID in URN format (gs1:, macaddress:, uuid:, etc.)
+
+
+# =============================================================================
 # Device Properties Container
 # =============================================================================
 
@@ -584,8 +606,10 @@ class VirtualDevice:
     This class represents a complete virtual device with all its properties,
     inputs, outputs, and configuration.
     """
-    # General properties
-    ds_uid: str  # 34 hex characters (2*17)
+    # Common entity properties (vDC Spec Section 2)
+    common: CommonEntityProperties
+    
+    # General device properties (vDC Spec Section 4.1.1)
     properties: DeviceProperties
     
     # Input properties
@@ -955,6 +979,18 @@ def create_brightness_channel(
 if __name__ == "__main__":
     # Example: Create a simple dimmable light with a pushbutton and temperature sensor
     
+    # Create common entity properties
+    common_props = CommonEntityProperties(
+        ds_uid="0123456789ABCDEF0123456789ABCDEF01",
+        display_id="LIGHT-001",
+        type="vdSD",
+        model="Virtual Dimmable Light",
+        model_version="1.0.0",
+        model_uid="vdSD-light-dimmer-temp-v1",
+        hardware_version="1.0",
+        hardware_guid="uuid:550e8400-e29b-41d4-a716-446655440000",
+    )
+    
     # Create device properties
     device_props = DeviceProperties(
         primary_group=1,  # Light
@@ -965,7 +1001,7 @@ if __name__ == "__main__":
     
     # Create the virtual device
     device = VirtualDevice(
-        ds_uid="0123456789ABCDEF0123456789ABCDEF01",
+        common=common_props,
         properties=device_props,
     )
     

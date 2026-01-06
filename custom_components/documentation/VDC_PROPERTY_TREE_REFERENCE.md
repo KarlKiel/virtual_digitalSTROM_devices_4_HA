@@ -14,9 +14,17 @@ This is a visual reference showing the complete hierarchical structure of all vD
 ```
 VirtualDevice
 │
-├─ dSUID [R] (string, 34 hex chars)
+├─ Common Properties for All Addressable Entities (vDC Spec Section 2)
+│  ├─ dSUID [R] (string, 34 hex chars)
+│  ├─ displayId [R] (string) - human-readable identification on physical device
+│  ├─ type [R] (string) - "vdSD", "vDC", "vDChost", or "vdSM"
+│  ├─ model [R] (string) - human-readable model string
+│  ├─ modelVersion [R] (string) - model version (firmware version)
+│  ├─ modelUID [R] (string) - digitalSTROM system unique ID for functional model
+│  ├─ hardwareVersion [O] (string) - hardware version string
+│  └─ hardwareGuid [O] (string) - hardware GUID in URN format
 │
-├─ General Device Properties
+├─ General Device Properties (vDC Spec Section 4.1.1)
 │  ├─ primaryGroup [R] (integer, dS class number)
 │  ├─ zoneID [R] (integer, global dS Zone ID)
 │  ├─ progMode [O] (boolean)
