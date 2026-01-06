@@ -33,6 +33,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     vdc_config_path = integration_dir / VDC_CONFIG_FILE
     vdc_manager = VdcManager(vdc_config_path)
     
+    # Load vDC configuration in executor to avoid blocking I/O
+    await hass.async_add_executor_job(vdc_manager.load)
+    
     # Get DSS port from config entry
     dss_port = entry.data.get(CONF_DSS_PORT, 8440)
     
@@ -48,6 +51,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Initialize device storage
     storage_path = integration_dir / STORAGE_FILE
     device_storage = DeviceStorage(storage_path)
+    
+    # Load device storage in executor to avoid blocking I/O
+    await hass.async_add_executor_job(device_storage.load)
     
     # Initialize state listener manager
     listener_mappings_path = integration_dir / STATE_LISTENER_MAPPINGS_FILE

@@ -104,6 +104,11 @@ class VdcManager:
         """
         self.storage_path = storage_path
         self._vdc_config: dict[str, Any] = {}
+        # Don't load in __init__ to avoid blocking I/O in async context
+        # Call load() separately when needed
+    
+    def load(self) -> None:
+        """Load vDC configuration from YAML file (synchronous)."""
         self._load()
     
     def _load(self) -> None:

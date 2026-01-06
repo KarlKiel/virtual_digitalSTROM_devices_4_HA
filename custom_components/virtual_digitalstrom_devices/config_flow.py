@@ -81,17 +81,31 @@ def _extract_category_name(category_value: str) -> str:
 
 
 def _get_device_storage() -> DeviceStorage:
-    """Get the device storage instance.
-
+    """Get the device storage instance (unloaded).
+    
     Returns:
-        DeviceStorage instance
+        DeviceStorage instance (not loaded yet - call load() before use)
     """
     integration_dir = Path(__file__).parent
     storage_path = integration_dir / STORAGE_FILE
     return DeviceStorage(storage_path)
 
 
-def _create_virtual_device(
+async def _get_device_storage_async(hass: HomeAssistant) -> DeviceStorage:
+    """Get the device storage instance (async, loaded).
+    
+    Args:
+        hass: Home Assistant instance
+        
+    Returns:
+        DeviceStorage instance (loaded)
+    """
+    storage = _get_device_storage()
+    await hass.async_add_executor_job(storage.load)
+    return storage
+
+
+async def _create_virtual_device(
     hass: HomeAssistant,
     category_value: str,
     config_entry_id: str,
@@ -109,8 +123,8 @@ def _create_virtual_device(
     # Get the display name for the title
     category_name = _extract_category_name(category_value)
     
-    # Get device storage
-    device_storage = _get_device_storage()
+    # Get device storage (async to avoid blocking I/O)
+    device_storage = await _get_device_storage_async(hass)
     
     # Get group_id from color
     group_id = COLOR_TO_GROUP_ID.get(category_value, 0)
@@ -213,7 +227,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             existing_entries = self._async_current_entries()
             if existing_entries:
                 # Create and register the device
-                if _create_virtual_device(self.hass, category_value, existing_entries[0].entry_id):
+                if await _create_virtual_device(self.hass, category_value, existing_entries[0].entry_id):
                     return self.async_abort(reason="device_created")
                 else:
                     errors["base"] = "device_creation_failed"
@@ -325,7 +339,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             self._data = {"category": category_value}
             
             # Create and register the device
-            if _create_virtual_device(self.hass, category_value, self.config_entry.entry_id):
+            if await _create_virtual_device(self.hass, category_value, self.config_entry.entry_id):
                 return self.async_abort(reason="device_created")
             else:
                 errors["base"] = "device_creation_failed"
@@ -345,8 +359,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """List existing devices."""
-        # Get device storage
-        device_storage = _get_device_storage()
+        # Get device storage (async to avoid blocking I/O)
+        device_storage = await _get_device_storage_async(self.hass)
         
         devices = device_storage.get_all_devices()
         

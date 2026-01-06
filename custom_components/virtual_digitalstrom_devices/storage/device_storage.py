@@ -38,6 +38,11 @@ class DeviceStorage:
         """
         self.storage_path = storage_path
         self._devices: dict[str, VirtualDevice] = {}
+        # Don't load in __init__ to avoid blocking I/O in async context
+        # Call load() separately when needed
+    
+    def load(self) -> None:
+        """Load devices from YAML file (synchronous)."""
         self._load()
     
     def _load(self) -> None:
