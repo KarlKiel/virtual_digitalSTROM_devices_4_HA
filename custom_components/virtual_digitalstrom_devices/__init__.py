@@ -10,7 +10,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 
-from .const import DOMAIN, STORAGE_FILE, STATE_LISTENER_MAPPINGS_FILE, VDC_CONFIG_FILE, CONF_DSS_PORT
+from .const import DOMAIN, STORAGE_FILE, STATE_LISTENER_MAPPINGS_FILE, VDC_CONFIG_FILE, CONF_DSS_PORT, DEFAULT_VENDOR
 from .storage import DeviceStorage, PropertyUpdater, VdcManager
 from .storage.state_restorer import restore_states_on_startup
 from .listeners import StateListenerManager, DeviceListenerConfigurator
@@ -107,7 +107,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 config_entry_id=entry.entry_id,
                 identifiers={(DOMAIN, device.dsid)},
                 name=device.name,
-                manufacturer=device.vendor_name or "KarlKiel",
+                manufacturer=device.vendor_name or DEFAULT_VENDOR,
                 model=device.model or "Virtual Device",
                 via_device=(DOMAIN, vdc_dsuid),  # Link to vDC hub
             )

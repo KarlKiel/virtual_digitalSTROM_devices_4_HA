@@ -13,7 +13,7 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr
 
-from .const import DOMAIN, DEFAULT_NAME, CONF_DSS_PORT, DEFAULT_DSS_PORT, DSColor, DSGroupID
+from .const import DOMAIN, DEFAULT_NAME, DEFAULT_VENDOR, CONF_DSS_PORT, DEFAULT_DSS_PORT, DSColor, DSGroupID, STORAGE_FILE
 from .storage import DeviceStorage
 from .models.virtual_device import VirtualDevice
 
@@ -149,7 +149,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     def _get_device_storage(self) -> DeviceStorage:
         """Get the device storage instance."""
         integration_dir = Path(__file__).parent
-        storage_path = integration_dir / "virtual_digitalstrom_devices.yaml"
+        storage_path = integration_dir / STORAGE_FILE
         return DeviceStorage(storage_path)
 
     async def async_step_init(
@@ -199,7 +199,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 group_id=group_id,
                 device_class=category_value,
                 model=f"{category_name} Device",
-                vendor_name="KarlKiel",
+                vendor_name=DEFAULT_VENDOR,
             )
             
             # Add to storage
@@ -216,7 +216,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         config_entry_id=self.config_entry.entry_id,
                         identifiers={(DOMAIN, device.dsid)},
                         name=device.name,
-                        manufacturer="KarlKiel",
+                        manufacturer=DEFAULT_VENDOR,
                         model=f"{category_name} Device",
                         via_device=(DOMAIN, vdc_dsuid),  # Link to vDC hub
                     )

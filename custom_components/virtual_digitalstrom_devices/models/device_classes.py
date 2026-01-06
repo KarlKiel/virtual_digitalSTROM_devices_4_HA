@@ -34,8 +34,8 @@ class DSGroupID(int, Enum):
     HEATING = 3
     AUDIO = 4
     VIDEO = 5
-    SECURITY = 6  # Red color group
-    ACCESS = 7    # Green color group
+    SECURITY = 6  # Red color group - Alarms, fire, panic systems
+    ACCESS = 7    # Green color group - Doors, doorbells, access control
     JOKER = 8
     COOLING = 9
     VENTILATION = 10
@@ -43,7 +43,7 @@ class DSGroupID(int, Enum):
     RECIRCULATION = 12
     TEMPERATURE_CONTROL = 48
     APARTMENT_VENTILATION = 64
-    SINGLE_DEVICE = 0  # White color group - individual appliances
+    SINGLE_DEVICE = 0  # White color group - Individual appliances (fridge, coffee maker, etc.)
 
 
 class DSPrimaryChannel(str, Enum):

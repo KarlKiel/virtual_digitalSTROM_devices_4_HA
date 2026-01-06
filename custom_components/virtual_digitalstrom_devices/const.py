@@ -17,6 +17,7 @@ DOMAIN = "virtual_digitalstrom_devices"
 
 # Default values
 DEFAULT_NAME = "Virtual digitalSTROM Devices"
+DEFAULT_VENDOR = "KarlKiel"
 
 # Storage
 STORAGE_FILE = "virtual_digitalstrom_devices.yaml"
@@ -31,6 +32,7 @@ DEFAULT_DSS_PORT = 8440
 __all__ = [
     "DOMAIN",
     "DEFAULT_NAME",
+    "DEFAULT_VENDOR",
     "STORAGE_FILE",
     "STATE_LISTENER_MAPPINGS_FILE",
     "VDC_CONFIG_FILE",
