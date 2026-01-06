@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from typing import Any
 
 import voluptuous as vol
@@ -13,6 +14,8 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr
 
 from .const import DOMAIN, DEFAULT_NAME, CONF_DSS_PORT, DEFAULT_DSS_PORT, DSColor, DSGroupID
+from .storage import DeviceStorage
+from .models.virtual_device import VirtualDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,9 +39,9 @@ COLOR_TO_GROUP_ID = {
     DSColor.BLUE.value: DSGroupID.HEATING.value,  # Climate uses heating as default
     DSColor.CYAN.value: DSGroupID.AUDIO.value,
     DSColor.MAGENTA.value: DSGroupID.VIDEO.value,
-    DSColor.RED.value: 6,  # Security - not in DSGroupID enum
-    DSColor.GREEN.value: 7,  # Access - not in DSGroupID enum  
-    DSColor.WHITE.value: 0,  # Single Devices - not in DSGroupID enum
+    DSColor.RED.value: DSGroupID.SECURITY.value,
+    DSColor.GREEN.value: DSGroupID.ACCESS.value,
+    DSColor.WHITE.value: DSGroupID.SINGLE_DEVICE.value,
     DSColor.BLACK.value: DSGroupID.JOKER.value,
 }
 
@@ -143,6 +146,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         self.config_entry = config_entry
         self._data: dict[str, Any] = {}
 
+    def _get_device_storage(self) -> DeviceStorage:
+        """Get the device storage instance."""
+        integration_dir = Path(__file__).parent
+        storage_path = integration_dir / "virtual_digitalstrom_devices.yaml"
+        return DeviceStorage(storage_path)
+
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
@@ -178,15 +187,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             # Get the display name for the title
             category_name = _extract_category_name(category_value)
             
-            # Create the device in device storage and register in device registry
-            from .storage import DeviceStorage
-            from .models.virtual_device import VirtualDevice
-            from pathlib import Path
-            
-            # Get integration directory and device storage
-            integration_dir = Path(__file__).parent
-            storage_path = integration_dir / "virtual_digitalstrom_devices.yaml"
-            device_storage = DeviceStorage(storage_path)
+            # Get device storage
+            device_storage = self._get_device_storage()
             
             # Get group_id from color
             group_id = COLOR_TO_GROUP_ID.get(category_value, 0)
@@ -220,10 +222,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     )
                     _LOGGER.info("Created virtual device: %s (category: %s)", device.name, category_name)
                 
-                return self.async_create_entry(
-                    title="",
-                    data={},
-                )
+                # Return to main menu after successful device creation
+                return self.async_abort(reason="device_created")
             else:
                 errors["base"] = "device_creation_failed"
 
@@ -242,13 +242,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """List existing devices."""
-        from .storage import DeviceStorage
-        from pathlib import Path
-        
-        # Get integration directory and device storage
-        integration_dir = Path(__file__).parent
-        storage_path = integration_dir / "virtual_digitalstrom_devices.yaml"
-        device_storage = DeviceStorage(storage_path)
+        # Get device storage
+        device_storage = self._get_device_storage()
         
         devices = device_storage.get_all_devices()
         
