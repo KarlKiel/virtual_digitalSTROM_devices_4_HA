@@ -656,11 +656,18 @@ class VDCProperties:
 
 @dataclass
 class DeviceProperties:
-    """General device properties (Section 4.1.1)"""
+    """General device properties (Section 4.1.1)
+    
+    Note: The 'configurations' property is a list of property elements (property tree)
+    as defined in vDC spec sections 4.1.2, 4.1.3, and 4.1.4. Each configuration contains
+    nested structures for inputs, outputs/channels, and scenes.
+    
+    For implementation details, see custom_components/../models/property_tree.py
+    """
     primary_group: int  # dS class number
     zone_id: int  # Global dS Zone ID
     model_features: Dict[str, bool]  # Feature name : enabled
-    configurations: List[str]  # List of configuration IDs
+    configurations: Dict[str, Any]  # Property tree: config_id -> property elements (sections 4.1.2-4.1.4)
     prog_mode: Optional[bool] = None
     current_config_id: Optional[str] = None
 
@@ -1120,7 +1127,15 @@ if __name__ == "__main__":
         primary_group=1,  # Light
         zone_id=0,
         model_features={"dimmable": True, "has_button": True, "has_sensor": True},
-        configurations=["default"],
+        configurations={
+            "default": {
+                "id": "default",
+                "description": "Default configuration",
+                "inputs": {},  # Would contain button/binary/sensor input references
+                "outputs": {},  # Would contain output and channel references
+                "scenes": {},  # Would contain scene configurations
+            }
+        },
     )
     
     # Create the virtual device

@@ -30,6 +30,12 @@ except ImportError:
         dsuid_bytes = uuid_bytes + b'\x00'  # Add 1 byte padding = 17 bytes
         return dsuid_bytes.hex().upper()  # Convert to 34 hex characters
 
+try:
+    from .property_tree import DeviceConfigurations
+except ImportError:
+    # Fallback if property_tree module is not available
+    DeviceConfigurations = None
+
 
 @dataclass
 class VirtualDevice:
@@ -91,11 +97,23 @@ class VirtualDevice:
     zone_id: int = 0
     attributes: dict[str, Any] = field(default_factory=dict)
     
+    # vDC Property Tree: configurations (Section 4.1.1)
+    # This is a property tree structure containing inputs, outputs, and scenes per configuration
+    # For backward compatibility, we also support a simple list of configuration IDs
+    configurations: Optional[Any] = None  # DeviceConfigurations or List[str] for backward compat
+    
     def __post_init__(self):
         """Initialize and validate device properties."""
         # Generate dSUID if not provided
         if not self.dsid:
             self.dsid = self.generate_dsuid()
+        
+        # Initialize configurations if not set
+        if self.configurations is None:
+            if DeviceConfigurations is not None:
+                self.configurations = DeviceConfigurations.create_default()
+            else:
+                self.configurations = ["default"]
     
     def generate_dsuid(self) -> str:
         """
@@ -212,6 +230,20 @@ class VirtualDevice:
         if self.active is not None:
             result["active"] = self.active
         
+        # Handle configurations property tree
+        if self.configurations is not None:
+            if DeviceConfigurations is not None and isinstance(self.configurations, DeviceConfigurations):
+                # Save as property tree structure for future use
+                result["configurations_tree"] = self.configurations.to_property_elements()
+                # Also save simple ID list for backward compatibility
+                result["configurations"] = self.configurations.to_config_id_list()
+            elif isinstance(self.configurations, list):
+                # Backward compatibility: simple list of IDs
+                result["configurations"] = self.configurations
+            else:
+                # Unknown format, save as-is
+                result["configurations"] = self.configurations
+        
         return result
     
     @classmethod
@@ -224,6 +256,29 @@ class VirtualDevice:
         Returns:
             VirtualDevice instance
         """
+        # Handle configurations property tree
+        configurations = None
+        if "configurations_tree" in data and DeviceConfigurations is not None:
+            # Load from property tree structure (new format)
+            configurations = DeviceConfigurations.from_property_elements(data["configurations_tree"])
+        elif "configurations" in data:
+            # Backward compatibility: simple list or old format
+            configs_data = data.get("configurations", ["default"])
+            if isinstance(configs_data, list):
+                # Simple list of IDs - convert to property tree if possible
+                if DeviceConfigurations is not None:
+                    configurations = DeviceConfigurations()
+                    for config_id in configs_data:
+                        from .property_tree import ConfigurationPropertyTree
+                        config = ConfigurationPropertyTree(config_id=config_id)
+                        configurations.add_configuration(config)
+                    if configs_data:
+                        configurations.current_config_id = configs_data[0]
+                else:
+                    configurations = configs_data
+            else:
+                configurations = configs_data
+        
         return cls(
             # Common properties (vDC Spec Section 2)
             device_id=data.get("device_id", str(uuid.uuid4())),
@@ -249,6 +304,8 @@ class VirtualDevice:
             ha_entity_id=data.get("ha_entity_id", ""),
             zone_id=data.get("zone_id", 0),
             attributes=data.get("attributes", {}),
+            # Property tree
+            configurations=configurations,
         )
     
     def update(self, **kwargs: Any) -> None:
