@@ -337,8 +337,29 @@ For methods using UUIDv5:
 ### Problem: Import error in VirtualDevice
 
 **Expected behavior:**
-- In testing: Uses fallback (random UUIDs with padding)
-- In Home Assistant: Uses full dsuid_generator module
+- **In standalone testing**: Uses fallback (random UUIDs with padding)
+  - ⚠️ Not reproducible - this is expected for testing only
+  - ✅ Correct format (34 hex chars, 17 bytes)
+- **In Home Assistant**: Uses full dsuid_generator module
+  - ✅ Fully reproducible from same inputs
+  - ✅ Follows all specification rules
+
+**Verification:**
+```python
+# Test the real module directly (always reproducible)
+from dsuid_generator import generate_dsuid
+dsuid1 = generate_dsuid(unique_name="test")
+dsuid2 = generate_dsuid(unique_name="test")
+assert dsuid1 == dsuid2  # Always True
+
+# Test through VirtualDevice
+# - In testing: Uses fallback (not reproducible)
+# - In HA: Uses real module (reproducible)
+from virtual_device import VirtualDevice
+device = VirtualDevice(ha_entity_id="test")
+```
+
+**Solution:** No action needed - this is by design. The fallback ensures the code works even during development/testing without Home Assistant dependencies.
 
 ## References
 
