@@ -247,27 +247,50 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         is_black_device = category_value == DSColor.BLACK.value
         
         if user_input is not None:
-            # Store the configuration
-            self._data.update(user_input)
+            # Check which action button was clicked
+            next_action = user_input.get("next_action")
             
-            # Show menu with Next, Extended Config, Back, Cancel options
-            return await self.async_step_device_config_menu(None)
+            # Store the configuration data (excluding the action button)
+            config_data = {k: v for k, v in user_input.items() if k != "next_action"}
+            self._data.update(config_data)
+            
+            # Route based on user's button choice
+            if next_action == "create_device":
+                # User clicked "Create Device" - finish and create
+                return await self.async_step_create_device(None)
+            elif next_action == "show_extended_config":
+                # User clicked "Extended Configuration" - show optional fields
+                return await self.async_step_extended_config(None)
+            elif next_action == "go_back":
+                # User clicked "Back" - return to category selection
+                return await self.async_step_back_to_category(None)
+            elif next_action == "cancel":
+                # User clicked "Cancel" - abort device creation
+                return await self.async_step_cancel_creation(None)
         
-        # Build schema based on device type with saved values
+        # Build schema with required fields
         schema_dict = {
             vol.Required("name", default=self._data.get("name", "")): str,
             vol.Required("model", default=self._data.get("model", "")): str,
             vol.Required("display_id", default=self._data.get("display_id", "")): str,
         }
         
-        # Add group_id selection for Black devices
+        # For Black/Joker devices, add primary group selection
         if is_black_device:
-            # Create options for group_id (exclude Black itself)
-            group_id_options = {
+            # Create dropdown options for primary group (exclude Black itself)
+            primary_group_options = {
                 k: v for k, v in COLOR_GROUP_OPTIONS.items() 
                 if k != DSColor.BLACK.value
             }
-            schema_dict[vol.Required("group_id", default=self._data.get("group_id"))] = vol.In(group_id_options)
+            schema_dict[vol.Required("primary_group_selection", default=self._data.get("primary_group_selection"))] = vol.In(primary_group_options)
+        
+        # Add navigation/action selector as the last field
+        schema_dict[vol.Required("next_action", default="create_device")] = vol.In({
+            "create_device": "✓ Create Device (Finish)",
+            "show_extended_config": "⚙ Extended Configuration (Optional)",
+            "go_back": "← Back to Category Selection",
+            "cancel": "✗ Cancel Device Creation",
+        })
         
         config_schema = vol.Schema(schema_dict)
         
@@ -275,15 +298,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="device_config",
             data_schema=config_schema,
             errors=errors,
-        )
-    
-    async def async_step_device_config_menu(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Show menu after device config is filled."""
-        return self.async_show_menu(
-            step_id="device_config_menu",
-            menu_options=["create_device", "extended_config", "back_to_category", "cancel_creation"],
         )
     
     async def async_step_create_device(
@@ -330,8 +344,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             # Store extended configuration
             self._extended_config.update(user_input)
             
-            # Return to main config menu
-            return await self.async_step_device_config_menu(None)
+            # Return to main device config screen
+            return await self.async_step_device_config(None)
 
         # Build schema for optional properties
         schema_dict = {
@@ -379,10 +393,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         device_storage = await _get_device_storage_async(self.hass)
         
         # Determine group_id
-        # For Black devices, use the selected primary_group
+        # For Black devices, use the selected primary_group_selection
         # For others, use the category color mapping
-        if category_value == DSColor.BLACK.value and "group_id" in self._data:
-            group_id = COLOR_TO_GROUP_ID.get(self._data["primary_group"], DSGroupID.JOKER.value)
+        if category_value == DSColor.BLACK.value and "primary_group_selection" in self._data:
+            group_id = COLOR_TO_GROUP_ID.get(self._data["primary_group_selection"], DSGroupID.JOKER.value)
         else:
             group_id = COLOR_TO_GROUP_ID.get(category_value, 0)
         
@@ -555,27 +569,50 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         is_black_device = category_value == DSColor.BLACK.value
         
         if user_input is not None:
-            # Store the configuration
-            self._data.update(user_input)
+            # Check which action button was clicked
+            next_action = user_input.get("next_action")
             
-            # Show menu with Next, Extended Config, Back, Cancel options
-            return await self.async_step_device_config_menu(None)
+            # Store the configuration data (excluding the action button)
+            config_data = {k: v for k, v in user_input.items() if k != "next_action"}
+            self._data.update(config_data)
+            
+            # Route based on user's button choice
+            if next_action == "create_device":
+                # User clicked "Create Device" - finish and create
+                return await self.async_step_create_device(None)
+            elif next_action == "show_extended_config":
+                # User clicked "Extended Configuration" - show optional fields
+                return await self.async_step_extended_config(None)
+            elif next_action == "go_back":
+                # User clicked "Back" - return to category selection
+                return await self.async_step_back_to_category(None)
+            elif next_action == "cancel":
+                # User clicked "Cancel" - abort device creation
+                return await self.async_step_cancel_creation(None)
         
-        # Build schema based on device type with saved values
+        # Build schema with required fields
         schema_dict = {
             vol.Required("name", default=self._data.get("name", "")): str,
             vol.Required("model", default=self._data.get("model", "")): str,
             vol.Required("display_id", default=self._data.get("display_id", "")): str,
         }
         
-        # Add group_id selection for Black devices
+        # For Black/Joker devices, add primary group selection
         if is_black_device:
-            # Create options for group_id (exclude Black itself)
-            group_id_options = {
+            # Create dropdown options for primary group (exclude Black itself)
+            primary_group_options = {
                 k: v for k, v in COLOR_GROUP_OPTIONS.items() 
                 if k != DSColor.BLACK.value
             }
-            schema_dict[vol.Required("group_id", default=self._data.get("group_id"))] = vol.In(group_id_options)
+            schema_dict[vol.Required("primary_group_selection", default=self._data.get("primary_group_selection"))] = vol.In(primary_group_options)
+        
+        # Add navigation/action selector as the last field
+        schema_dict[vol.Required("next_action", default="create_device")] = vol.In({
+            "create_device": "✓ Create Device (Finish)",
+            "show_extended_config": "⚙ Extended Configuration (Optional)",
+            "go_back": "← Back to Category Selection",
+            "cancel": "✗ Cancel Device Creation",
+        })
         
         config_schema = vol.Schema(schema_dict)
         
@@ -583,15 +620,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             step_id="device_config",
             data_schema=config_schema,
             errors=errors,
-        )
-    
-    async def async_step_device_config_menu(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Show menu after device config is filled."""
-        return self.async_show_menu(
-            step_id="device_config_menu",
-            menu_options=["create_device", "extended_config", "back_to_category", "cancel_creation"],
         )
     
     async def async_step_create_device(
@@ -633,8 +661,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             # Store extended configuration
             self._extended_config.update(user_input)
             
-            # Return to main config menu
-            return await self.async_step_device_config_menu(None)
+            # Return to main device config screen
+            return await self.async_step_device_config(None)
 
         # Build schema for optional properties
         schema_dict = {
@@ -679,10 +707,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         device_storage = await _get_device_storage_async(self.hass)
         
         # Determine group_id
-        # For Black devices, use the selected primary_group
+        # For Black devices, use the selected primary_group_selection
         # For others, use the category color mapping
-        if category_value == DSColor.BLACK.value and "group_id" in self._data:
-            group_id = COLOR_TO_GROUP_ID.get(self._data["primary_group"], DSGroupID.JOKER.value)
+        if category_value == DSColor.BLACK.value and "primary_group_selection" in self._data:
+            group_id = COLOR_TO_GROUP_ID.get(self._data["primary_group_selection"], DSGroupID.JOKER.value)
         else:
             group_id = COLOR_TO_GROUP_ID.get(category_value, 0)
         

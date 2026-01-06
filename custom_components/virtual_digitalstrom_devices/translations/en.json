@@ -20,7 +20,7 @@
           "category": "Device Category"
         },
         "data_description": {
-          "category": "Choose the color group that best matches your device type:\n\n• Yellow (Lights) - All lighting devices\n• Gray (Blinds) - Shading and blind control\n• Blue (Climate) - Heating, cooling, ventilation, windows\n• Cyan (Audio) - Audio playback devices\n• Magenta (Video) - TV and video devices\n• Red (Security) - Alarms, fire, panic systems\n• Green (Access) - Doors, doorbells, access control\n• White (Single Devices) - Individual appliances like fridges and coffee makers\n• Black (Joker) - Configurable/customizable devices"
+          "category": "Choose the color group that best matches your device type:\n\n\u2022 Yellow (Lights) - All lighting devices\n\u2022 Gray (Blinds) - Shading and blind control\n\u2022 Blue (Climate) - Heating, cooling, ventilation, windows\n\u2022 Cyan (Audio) - Audio playback devices\n\u2022 Magenta (Video) - TV and video devices\n\u2022 Red (Security) - Alarms, fire, panic systems\n\u2022 Green (Access) - Doors, doorbells, access control\n\u2022 White (Single Devices) - Individual appliances like fridges and coffee makers\n\u2022 Black (Joker) - Configurable/customizable devices"
         }
       },
       "device_config": {
@@ -30,13 +30,15 @@
           "name": "Device Name",
           "model": "Model",
           "display_id": "Display ID",
-          "group_id": "Primary Group"
+          "primary_group_selection": "Primary Group",
+          "next_action": "Next Step"
         },
         "data_description": {
           "name": "A user-friendly name for your device (e.g., 'Living Room Ceiling Light', 'Bedroom Blind').\n\nThis name will be used to identify the device in Home Assistant and digitalSTROM.",
           "model": "The model name of your device (e.g., 'LED Dimmer', 'Smart Blind Controller').\n\nThis identifies the type or model of the physical or virtual device.",
           "display_id": "A human-readable identifier that would be printed on a physical device (e.g., serial number, device label).\n\nThis can be left empty if not applicable for virtual devices.",
-          "group_id": "Select the primary functional group for this Joker device.\n\nJoker (Black) devices are configurable and can be assigned to any functional group. This determines the device's primary behavior and which scenes it responds to."
+          "primary_group_selection": "Select the primary functional group for this Joker device.\n\nJoker (Black) devices are configurable and can be assigned to any functional group. This determines the device's primary behavior and which scenes it responds to.\n\n\u2022 Yellow (Lights) - Device behaves as a light\n\u2022 Gray (Blinds) - Device controls blinds/shades\n\u2022 Blue (Climate) - Device for heating/cooling\n\u2022 Cyan (Audio) - Audio device functions\n\u2022 Magenta (Video) - Video/TV functions\n\u2022 Red (Security) - Security/alarm functions\n\u2022 Green (Access) - Door/access control\n\u2022 White (Single Devices) - Appliance functions",
+          "next_action": "Choose what to do next:\n\n\u2022 \u2713 Create Device (Finish) - Save the device with current settings\n\u2022 \u2699 Extended Configuration (Optional) - Configure additional properties like hardware IDs, vendor info, etc.\n\u2022 \u2190 Back to Category Selection - Change the device category\n\u2022 \u2717 Cancel Device Creation - Abort and don't create the device"
         }
       },
       "extended_config": {
@@ -129,7 +131,7 @@
           "category": "Device Category"
         },
         "data_description": {
-          "category": "Choose the color group that best matches your device type:\n\n• Yellow (Lights) - All lighting devices\n• Gray (Blinds) - Shading and blind control\n• Blue (Climate) - Heating, cooling, ventilation, windows\n• Cyan (Audio) - Audio playback devices\n• Magenta (Video) - TV and video devices\n• Red (Security) - Alarms, fire, panic systems\n• Green (Access) - Doors, doorbells, access control\n• White (Single Devices) - Individual appliances like fridges and coffee makers\n• Black (Joker) - Configurable/customizable devices"
+          "category": "Choose the color group that best matches your device type:\n\n\u2022 Yellow (Lights) - All lighting devices\n\u2022 Gray (Blinds) - Shading and blind control\n\u2022 Blue (Climate) - Heating, cooling, ventilation, windows\n\u2022 Cyan (Audio) - Audio playback devices\n\u2022 Magenta (Video) - TV and video devices\n\u2022 Red (Security) - Alarms, fire, panic systems\n\u2022 Green (Access) - Doors, doorbells, access control\n\u2022 White (Single Devices) - Individual appliances like fridges and coffee makers\n\u2022 Black (Joker) - Configurable/customizable devices"
         }
       },
       "device_config": {
@@ -139,13 +141,15 @@
           "name": "Device Name",
           "model": "Model",
           "display_id": "Display ID",
-          "group_id": "Primary Group"
+          "primary_group_selection": "Primary Group",
+          "next_action": "Next Step"
         },
         "data_description": {
           "name": "A user-friendly name for your device (e.g., 'Living Room Ceiling Light', 'Bedroom Blind').\n\nThis name will be used to identify the device in Home Assistant and digitalSTROM.",
           "model": "The model name of your device (e.g., 'LED Dimmer', 'Smart Blind Controller').\n\nThis identifies the type or model of the physical or virtual device.",
           "display_id": "A human-readable identifier that would be printed on a physical device (e.g., serial number, device label).\n\nThis can be left empty if not applicable for virtual devices.",
-          "group_id": "Select the primary functional group for this Joker device.\n\nJoker (Black) devices are configurable and can be assigned to any functional group. This determines the device's primary behavior and which scenes it responds to."
+          "primary_group_selection": "Select the primary functional group for this Joker device.\n\nJoker (Black) devices are configurable and can be assigned to any functional group. This determines the device's primary behavior and which scenes it responds to.\n\n\u2022 Yellow (Lights) - Device behaves as a light\n\u2022 Gray (Blinds) - Device controls blinds/shades\n\u2022 Blue (Climate) - Device for heating/cooling\n\u2022 Cyan (Audio) - Audio device functions\n\u2022 Magenta (Video) - Video/TV functions\n\u2022 Red (Security) - Security/alarm functions\n\u2022 Green (Access) - Door/access control\n\u2022 White (Single Devices) - Appliance functions",
+          "next_action": "Choose what to do next:\n\n\u2022 \u2713 Create Device (Finish) - Save the device with current settings\n\u2022 \u2699 Extended Configuration (Optional) - Configure additional properties like hardware IDs, vendor info, etc.\n\u2022 \u2190 Back to Category Selection - Change the device category\n\u2022 \u2717 Cancel Device Creation - Abort and don't create the device"
         }
       },
       "extended_config": {
