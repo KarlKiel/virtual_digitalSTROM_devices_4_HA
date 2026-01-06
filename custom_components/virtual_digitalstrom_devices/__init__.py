@@ -168,6 +168,15 @@ async def async_remove_config_entry_device(
     """Remove a device from the integration.
     
     This is called when a user deletes a device from the UI via the device's 3-dot menu.
+    
+    Args:
+        hass: Home Assistant instance
+        entry: Config entry for this integration
+        device_entry: Device entry to remove
+        
+    Returns:
+        True if device was successfully removed from storage, False otherwise.
+        Note: The device is automatically removed from the device registry by Home Assistant.
     """
     _LOGGER.debug("Removing device: %s", device_entry.name)
     
@@ -178,20 +187,22 @@ async def async_remove_config_entry_device(
     storage_path = integration_dir / STORAGE_FILE
     device_storage = DeviceStorage(storage_path)
     
-    # Find the device by its identifier (dsid)
-    device_identifiers = device_entry.identifiers
-    for identifier in device_identifiers:
-        if identifier[0] == DOMAIN:
-            dsid = identifier[1]
-            _LOGGER.debug("Found device dsid: %s", dsid)
-            
-            # Remove device from storage
-            if device_storage.delete_device(dsid):
-                _LOGGER.info("Successfully removed device %s (dsid: %s) from storage", device_entry.name, dsid)
-                return True
-            else:
-                _LOGGER.error("Failed to remove device %s (dsid: %s) from storage", device_entry.name, dsid)
-                return False
+    # Find the device by its identifier (dsid) using the DOMAIN
+    dsid = next(
+        (identifier[1] for identifier in device_entry.identifiers if identifier[0] == DOMAIN),
+        None
+    )
     
-    _LOGGER.error("Could not find device identifier for %s", device_entry.name)
+    if dsid is None:
+        _LOGGER.error("Could not find device identifier for %s", device_entry.name)
+        return False
+    
+    _LOGGER.debug("Found device dsid: %s", dsid)
+    
+    # Remove device from storage
+    if device_storage.delete_device(dsid):
+        _LOGGER.info("Successfully removed device %s (dsid: %s) from storage", device_entry.name, dsid)
+        return True
+    
+    _LOGGER.error("Failed to remove device %s (dsid: %s) from storage", device_entry.name, dsid)
     return False
