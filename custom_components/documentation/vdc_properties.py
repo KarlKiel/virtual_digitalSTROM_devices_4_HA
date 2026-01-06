@@ -6,11 +6,17 @@ as defined in the vDC-API-properties specification (July 2022).
 
 These classes can be used to construct virtual digitalSTROM devices (vdSD)
 with proper type safety and validation.
+
+For dSUID generation, use the dsuid_generator module which implements
+the dSUID generation rules from ds-basics.pdf Chapter 13.3.
 """
 
 from typing import Optional, List, Dict, Union, Any
 from enum import Enum
 from dataclasses import dataclass, field
+
+# Note: dsuid_generator module is available for dSUID generation
+# from dsuid_generator import generate_dsuid
 
 
 # =============================================================================
@@ -558,6 +564,21 @@ class Scene:
 
 
 # =============================================================================
+# Control Values (vDC Spec Section 4.11)
+# =============================================================================
+
+@dataclass
+class ControlValues:
+    """
+    Control Values for a device (vDC Spec Section 4.11).
+    
+    Control values are write-only values that can be set using setControlValue.
+    They cannot be read like regular properties.
+    """
+    heating_level: Optional[float] = None  # -100..100: 0=no heating/cooling, 100=max heating, -100=max cooling
+
+
+# =============================================================================
 # Common Properties for All Addressable Entities (vDC Spec Section 2)
 # =============================================================================
 
@@ -568,15 +589,65 @@ class CommonEntityProperties:
     
     These properties must be supported by all addressable entities:
     vdSD (virtual device), vDC, vDChost, vdSM
+    
+    All properties are defined in vDC-API-properties Chapter 2.
     """
+    # Required properties
     ds_uid: str  # dSUID - 34 hex characters (2*17)
     display_id: str  # Human-readable identification printed on physical device
     type: str  # Entity type: "vdSD", "vDC", "vDChost", "vdSM"
     model: str  # Human-readable model string
     model_version: str  # Model version (firmware version)
     model_uid: str  # digitalSTROM system unique ID for functional model
+    
+    # Optional properties
     hardware_version: Optional[str] = None  # Hardware version string
     hardware_guid: Optional[str] = None  # Hardware GUID in URN format (gs1:, macaddress:, uuid:, etc.)
+    hardware_model_guid: Optional[str] = None  # Hardware model GUID in URN format
+    vendor_name: Optional[str] = None  # Human-readable vendor/manufacturer name
+    vendor_guid: Optional[str] = None  # Vendor GUID in URN format
+    oem_guid: Optional[str] = None  # OEM product GUID
+    oem_model_guid: Optional[str] = None  # OEM product model GUID (often GTIN)
+    config_url: Optional[str] = None  # URL to device web configuration
+    device_icon_16: Optional[bytes] = None  # 16x16 pixel PNG image
+    device_icon_name: Optional[str] = None  # Filename-safe icon name for caching
+    name: Optional[str] = None  # User-specified name (also stored upstream)
+    device_class: Optional[str] = None  # digitalSTROM device class profile name
+    device_class_version: Optional[str] = None  # Device class profile revision
+    active: Optional[bool] = None  # Operation state (true = can operate normally)
+
+
+# =============================================================================
+# vDC (Virtual Device Connector) Properties (vDC Spec Section 3)
+# =============================================================================
+
+@dataclass
+class VDCCapabilities:
+    """
+    Capabilities of a vDC (vDC Spec Section 3.2).
+    
+    Each capability indicates what features the vDC supports.
+    """
+    metering: Optional[bool] = None  # vDC provides metering data
+    identification: Optional[bool] = None  # vDC provides identification (e.g., LED blink)
+    dynamic_definitions: Optional[bool] = None  # vDC supports dynamic device definitions
+
+
+@dataclass
+class VDCProperties:
+    """
+    Properties for Virtual Device Connector (vDC Spec Section 3).
+    
+    These are properties specific to vDC entities (type="vDC").
+    vDCs must also support CommonEntityProperties.
+    """
+    # Common properties (all vDCs must have these)
+    common: CommonEntityProperties
+    
+    # vDC-specific properties
+    capabilities: VDCCapabilities = field(default_factory=VDCCapabilities)
+    zone_id: Optional[int] = None  # Default zone for this vDC
+    implementation_id: Optional[str] = None  # Unique vDC implementation ID
 
 
 # =============================================================================
@@ -687,12 +758,47 @@ class VirtualDevice:
     def to_dict(self) -> Dict[str, Any]:
         """Convert device to dictionary representation (for JSON serialization)"""
         result = {
-            "dSUID": self.ds_uid,
+            # Common entity properties
+            "dSUID": self.common.ds_uid,
+            "displayId": self.common.display_id,
+            "type": self.common.type,
+            "model": self.common.model,
+            "modelVersion": self.common.model_version,
+            "modelUID": self.common.model_uid,
+            # Device properties
             "primaryGroup": self.properties.primary_group,
             "zoneID": self.properties.zone_id,
             "modelFeatures": self.properties.model_features,
             "configurations": self.properties.configurations,
         }
+        
+        # Add optional common properties
+        if self.common.hardware_version is not None:
+            result["hardwareVersion"] = self.common.hardware_version
+        if self.common.hardware_guid is not None:
+            result["hardwareGuid"] = self.common.hardware_guid
+        if self.common.hardware_model_guid is not None:
+            result["hardwareModelGuid"] = self.common.hardware_model_guid
+        if self.common.vendor_name is not None:
+            result["vendorName"] = self.common.vendor_name
+        if self.common.vendor_guid is not None:
+            result["vendorGuid"] = self.common.vendor_guid
+        if self.common.oem_guid is not None:
+            result["oemGuid"] = self.common.oem_guid
+        if self.common.oem_model_guid is not None:
+            result["oemModelGuid"] = self.common.oem_model_guid
+        if self.common.config_url is not None:
+            result["configURL"] = self.common.config_url
+        if self.common.device_icon_name is not None:
+            result["deviceIconName"] = self.common.device_icon_name
+        if self.common.name is not None:
+            result["name"] = self.common.name
+        if self.common.device_class is not None:
+            result["deviceClass"] = self.common.device_class
+        if self.common.device_class_version is not None:
+            result["deviceClassVersion"] = self.common.device_class_version
+        if self.common.active is not None:
+            result["active"] = self.common.active
         
         if self.properties.prog_mode is not None:
             result["progMode"] = self.properties.prog_mode
@@ -979,9 +1085,20 @@ def create_brightness_channel(
 if __name__ == "__main__":
     # Example: Create a simple dimmable light with a pushbutton and temperature sensor
     
-    # Create common entity properties
+    # Import dSUID generator (available in same directory)
+    try:
+        from dsuid_generator import generate_dsuid
+        # Generate dSUID from unique name (e.g., HA entity ID)
+        dsuid = generate_dsuid(unique_name="light.living_room_main")
+        print(f"Generated dSUID: {dsuid}")
+    except ImportError:
+        # Fallback if dsuid_generator not available
+        dsuid = "0123456789ABCDEF0123456789ABCDEF01"
+        print("Using fallback dSUID (dsuid_generator not imported)")
+    
+    # Create common entity properties with all new fields
     common_props = CommonEntityProperties(
-        ds_uid="0123456789ABCDEF0123456789ABCDEF01",
+        ds_uid=dsuid,
         display_id="LIGHT-001",
         type="vdSD",
         model="Virtual Dimmable Light",
@@ -989,6 +1106,13 @@ if __name__ == "__main__":
         model_uid="vdSD-light-dimmer-temp-v1",
         hardware_version="1.0",
         hardware_guid="uuid:550e8400-e29b-41d4-a716-446655440000",
+        hardware_model_guid="gs1:(01)4050300870342",
+        vendor_name="Example Manufacturer",
+        vendor_guid="vendorname:Example Corp",
+        name="Living Room Main Light",
+        device_class="light.dimmer",
+        device_class_version="1.0",
+        active=True,
     )
     
     # Create device properties
@@ -1046,8 +1170,14 @@ if __name__ == "__main__":
     device.add_scene(scene_preset1)
     
     # Print device info
+    print("\n" + "="*60)
     print("Virtual Device Created:")
-    print(f"  dSUID: {device.ds_uid}")
+    print(f"  dSUID: {device.common.ds_uid}")
+    print(f"  Display ID: {device.common.display_id}")
+    print(f"  Type: {device.common.type}")
+    print(f"  Model: {device.common.model}")
+    print(f"  Name: {device.common.name}")
+    print(f"  Active: {device.common.active}")
     print(f"  Primary Group: {device.properties.primary_group}")
     print(f"  Zone ID: {device.properties.zone_id}")
     print(f"  Button Inputs: {len(device.button_inputs)}")
