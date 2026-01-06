@@ -66,7 +66,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         
         if existing_entries:
             # Integration is already set up, this is for creating a new device
-            return await self.async_step_device_category(user_input)
+            # Don't pass user_input as it's not relevant for the device category step
+            return await self.async_step_device_category(None)
         else:
             # First time setup - configure the integration
             return await self.async_step_integration_setup(user_input)
@@ -103,12 +104,19 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
         
         if user_input is not None:
-            # Store the selected category
-            self._data["category"] = user_input["category"]
+            # Store the selected category (color value like 'yellow')
+            category_value = user_input["category"]
+            self._data = {"category": category_value}
+            
+            # Get the descriptive name from the COLOR_GROUP_OPTIONS
+            category_display = COLOR_GROUP_OPTIONS.get(category_value, category_value)
+            # Extract just the category name (before the dash)
+            category_name = category_display.split(" - ")[0] if " - " in category_display else category_display
+            
             # For now, we'll just create an entry with the category
             # Future steps will be added to configure the device details
             return self.async_create_entry(
-                title=f"Virtual Device ({user_input['category'].title()})",
+                title=f"Virtual Device ({category_name})",
                 data=self._data
             )
 
