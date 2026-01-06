@@ -514,7 +514,8 @@ class VdcMessageDispatcher:
             prop_value = prop.get("value")
             
             # Check that name exists and 'value' key is in property dict
-            # This allows falsy values like 0, False, empty string, etc.
+            # This allows setting properties to any value including falsy values
+            # (0, False, empty string, etc.), but filters out properties without a name
             if prop_name is not None and "value" in prop:
                 # Use property updater to set the property
                 await self.property_updater.update_property(
@@ -599,7 +600,8 @@ class VdcMessageDispatcher:
             apply_now: Whether to apply immediately
             channel_id: Channel ID string (API v3)
         """
-        # Return early if no value provided
+        # Return early if no value provided (None is different from 0 or False)
+        # In the vDC API, value is required for SetOutputChannelValue notification
         if value is None:
             _LOGGER.warning(
                 f"No value provided for channel {channel} on device {device.name}"
