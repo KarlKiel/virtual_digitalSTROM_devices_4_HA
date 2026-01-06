@@ -19,6 +19,7 @@ from .device_storage import DeviceStorage
 from .message_builder import MessageBuilder, create_property_dict
 from .message_handler import ParsedMessage, extract_property_elements
 from .property_updater import PropertyUpdater
+from .state_listener import StatePropertyType
 from .virtual_device import VirtualDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -583,7 +584,6 @@ class VdcMessageDispatcher:
         )
         
         # Update via property updater
-        from .state_listener import StatePropertyType
         await self.property_updater.update_property(
             device_id=device.device_id,
             property_type=StatePropertyType.CHANNEL_VALUE.value,
