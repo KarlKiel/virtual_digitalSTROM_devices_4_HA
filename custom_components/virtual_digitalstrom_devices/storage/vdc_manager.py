@@ -57,25 +57,25 @@ class VdcManager:
     
     Managed Properties:
     -------------------
-    Chapter 2 - Common Properties (Required):
+    Chapter 2 - Common Properties (Required by this implementation):
         - dsUID: digitalSTROM Unique Identifier (34 hex chars)
         - displayId: Human-readable identification
         - type: Entity type ("vDC")
         - model: Model description
         - modelVersion: Firmware/software version
         - modelUID: Unique ID for functional model
+        - vendorName: Vendor/manufacturer name (set to default)
+        - name: User-friendly device name (set to default)
         
-    Chapter 2 - Common Properties (Optional):
+    Chapter 2 - Common Properties (Optional, preserved if set):
         - hardwareVersion: Hardware version string
         - hardwareGuid: Hardware GUID in URN format
         - hardwareModelGuid: Hardware model GUID
-        - vendorName: Vendor/manufacturer name
         - vendorGuid: Vendor GUID
         - oemGuid: OEM product GUID
         - oemModelGuid: OEM model GUID
         - deviceClass: Device class profile name
         - deviceClassVersion: Device class version
-        - name: User-friendly device name
         
     Chapter 3 - vDC-Level Properties:
         - implementationId: Implementation identifier
@@ -85,6 +85,16 @@ class VdcManager:
     All properties are persisted to YAML storage and can be retrieved or updated
     using the provided methods.
     """
+    
+    # Optional properties that can be updated after vDC creation
+    UPDATABLE_PROPERTIES = [
+        # Chapter 2 optional properties
+        "hardwareVersion", "hardwareGuid", "hardwareModelGuid",
+        "vendorGuid", "oemGuid", "oemModelGuid",
+        "deviceClass", "deviceClassVersion",
+        # Chapter 3 vDC-level properties
+        "implementationId", "configURL", "apiVersion"
+    ]
     
     def __init__(self, storage_path: Path) -> None:
         """Initialize the vDC manager.
@@ -170,15 +180,17 @@ class VdcManager:
         - Chapter 2: Common properties for all addressable entities (required and optional)
         - Chapter 3: vDC-level specific properties
         
-        Required Chapter 2 properties:
-        - dsUID, displayId, type, model, modelVersion, modelUID
+        Properties set by this implementation:
+        - Required: dsUID, displayId, type, model, modelVersion, modelUID
+        - Set to defaults: vendorName, name (both set to implementation defaults)
         
         Optional Chapter 2 properties (preserved if already set):
         - hardwareVersion, hardwareGuid, hardwareModelGuid
-        - vendorName, vendorGuid
-        - oemGuid, oemModelGuid
+        - vendorGuid, oemGuid, oemModelGuid
         - deviceClass, deviceClassVersion
-        - name (also used for user-friendly identification)
+        
+        Optional Chapter 3 properties (preserved if already set):
+        - implementationId, configURL, apiVersion
         
         Args:
             dss_port: TCP port for digitalSTROM server connection
@@ -291,24 +303,18 @@ class VdcManager:
         without recreating the entire configuration.
         
         Args:
-            property_name: Name of the property to update
+            property_name: Name of the property to update (must be in UPDATABLE_PROPERTIES)
             value: New value for the property
             
         Returns:
             True if property was updated and saved successfully, False otherwise
         """
-        # List of updatable properties (optional Chapter 2 and Chapter 3 properties)
-        updatable_properties = [
-            "hardwareVersion", "hardwareGuid", "hardwareModelGuid",
-            "vendorGuid", "oemGuid", "oemModelGuid",
-            "deviceClass", "deviceClassVersion",
-            "implementationId", "configURL", "apiVersion"
-        ]
-        
-        if property_name not in updatable_properties:
+        if property_name not in self.UPDATABLE_PROPERTIES:
             _LOGGER.warning(
-                "Property '%s' is not updatable. Only optional properties can be updated.",
-                property_name
+                "Property '%s' is not updatable. Only optional properties can be updated. "
+                "Allowed properties: %s",
+                property_name,
+                ", ".join(self.UPDATABLE_PROPERTIES)
             )
             return False
         
