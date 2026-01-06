@@ -122,19 +122,20 @@ State tracking and synchronization with Home Assistant:
 
 ## Data Storage Locations
 
-According to Home Assistant best practices, data files are stored in the Home Assistant configuration directory (`/config/`), **not** within the integration folder:
+The integration stores its configuration data within the integration folder itself:
 
 ```
-/config/
-├── custom_components/
-│   └── virtual_digitalstrom_devices/  # Integration code (this directory)
+/config/custom_components/virtual_digitalstrom_devices/
+├── __init__.py                                     # Integration code
+├── config_flow.py
+├── ... (other integration files)
 │
-├── virtual_digitalstrom_devices.yaml           # Device configurations
-├── virtual_digitalstrom_listener_mappings.yaml # State listener mappings
-└── virtual_digitalstrom_vdc_config.yaml        # vDC entity configuration
+├── virtual_digitalstrom_devices.yaml               # Device configurations
+├── virtual_digitalstrom_listener_mappings.yaml     # State listener mappings
+└── virtual_digitalstrom_vdc_config.yaml            # vDC entity configuration
 ```
 
-**Important**: Storage files are accessed via `hass.config.path()` to ensure they're in the correct location regardless of the Home Assistant installation directory.
+**Important**: Storage files are located within the integration directory using `Path(__file__).parent` to ensure they're co-located with the integration code. These YAML files are excluded from version control via `.gitignore`.
 
 ## Import Structure
 

@@ -120,7 +120,7 @@ devices:
 
 ## Integration with Home Assistant
 
-The storage is automatically initialized when the integration is set up. The YAML file is stored in the Home Assistant configuration directory as `virtual_digitalstrom_devices.yaml`.
+The storage is automatically initialized when the integration is set up. The YAML file is stored within the integration folder as `virtual_digitalstrom_devices.yaml`.
 
 Access the storage from the integration:
 

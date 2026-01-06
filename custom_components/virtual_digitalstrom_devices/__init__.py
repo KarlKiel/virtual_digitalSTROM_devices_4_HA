@@ -97,6 +97,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     devices = device_storage.get_all_devices()
     _LOGGER.info("Auto-configuring listeners for %d existing devices", len(devices))
     
+    # Register existing devices in device registry
+    device_reg = dr.async_get(hass)
+    vdc_dsuid = vdc_config["dsUID"]
+    for device in devices:
+        try:
+            # Register each device as a child of the vDC hub
+            device_reg.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, device.dsid)},
+                name=device.name,
+                manufacturer=device.vendor_name or "KarlKiel",
+                model=device.model or "Virtual Device",
+                via_device=(DOMAIN, vdc_dsuid),  # Link to vDC hub
+            )
+            _LOGGER.debug("Registered device in device registry: %s", device.name)
+        except Exception as err:
+            _LOGGER.error(
+                "Error registering device %s in device registry: %s",
+                device.name,
+                err,
+                exc_info=True,
+            )
+    
     total_listeners = 0
     for device in devices:
         try:
