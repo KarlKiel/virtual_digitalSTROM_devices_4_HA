@@ -131,4 +131,5 @@ Thumbs.db
 
 # Virtual digitalSTROM Devices
 virtual_digitalstrom_devices.yaml
+virtual_digitalstrom_listener_mappings.yaml
 example_devices.yaml

@@ -20,12 +20,14 @@ DEFAULT_NAME = "Virtual digitalSTROM Devices"
 
 # Storage
 STORAGE_FILE = "virtual_digitalstrom_devices.yaml"
+STATE_LISTENER_MAPPINGS_FILE = "virtual_digitalstrom_listener_mappings.yaml"
 
 # Export device class information
 __all__ = [
     "DOMAIN",
     "DEFAULT_NAME",
     "STORAGE_FILE",
+    "STATE_LISTENER_MAPPINGS_FILE",
     "DEVICE_CLASSES",
     "ADDITIONAL_COLOR_GROUPS",
     "DSColor",
