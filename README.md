@@ -20,8 +20,10 @@ This integration will be available through HACS in the future.
 1. In Home Assistant, go to **Settings** → **Devices & Services**
 2. Click the **+ Add Integration** button
 3. Search for "Virtual digitalSTROM Devices"
-4. Follow the configuration steps to set up the integration
-5. Once set up, click **Add Entry** to create virtual devices
+4. Follow the configuration steps to set up the vDC hub
+5. Once set up, click **Configure** on the integration to add virtual devices
+
+The integration creates a vDC (Virtual Device Connector) hub, and all virtual devices are registered as child devices of this hub.
 
 ## Features
 
@@ -40,16 +42,18 @@ This integration will be available through HACS in the future.
 
 ## Storage Locations
 
-The integration stores its configuration data in the Home Assistant configuration directory:
+The integration stores its configuration data within the integration folder:
 
 ```
-/config/
+custom_components/virtual_digitalstrom_devices/
 ├── virtual_digitalstrom_devices.yaml           # Device configurations
 ├── virtual_digitalstrom_listener_mappings.yaml # State listener mappings
 └── virtual_digitalstrom_vdc_config.yaml        # vDC entity configuration
 ```
 
 These files are automatically managed by the integration and persist across restarts.
+
+**Note:** These YAML files are excluded from version control via `.gitignore` as they contain user-specific configuration data.
 
 ## Development
 

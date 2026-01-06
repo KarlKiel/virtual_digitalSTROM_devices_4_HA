@@ -2,16 +2,20 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from typing import Any
 
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import device_registry as dr
 
-from .const import DOMAIN, DEFAULT_NAME, CONF_DSS_PORT, DEFAULT_DSS_PORT, DSColor
+from .const import DOMAIN, DEFAULT_NAME, DEFAULT_VENDOR, CONF_DSS_PORT, DEFAULT_DSS_PORT, DSColor, DSGroupID, STORAGE_FILE
+from .storage import DeviceStorage
+from .models.virtual_device import VirtualDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,6 +30,19 @@ COLOR_GROUP_OPTIONS = {
     DSColor.GREEN.value: "Access - Doors, doorbells, access control",
     DSColor.WHITE.value: "Single Devices - Individual appliances (fridge, coffee maker)",
     DSColor.BLACK.value: "Joker - Configurable/customizable devices",
+}
+
+# Map color to group ID
+COLOR_TO_GROUP_ID = {
+    DSColor.YELLOW.value: DSGroupID.LIGHTS.value,
+    DSColor.GRAY.value: DSGroupID.BLINDS.value,
+    DSColor.BLUE.value: DSGroupID.HEATING.value,  # Climate uses heating as default
+    DSColor.CYAN.value: DSGroupID.AUDIO.value,
+    DSColor.MAGENTA.value: DSGroupID.VIDEO.value,
+    DSColor.RED.value: DSGroupID.SECURITY.value,
+    DSColor.GREEN.value: DSGroupID.ACCESS.value,
+    DSColor.WHITE.value: DSGroupID.SINGLE_DEVICE.value,
+    DSColor.BLACK.value: DSGroupID.JOKER.value,
 }
 
 # Configuration schema
@@ -75,17 +92,17 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Handle the user step - either integration setup or device creation."""
+        """Handle the user step - only for integration setup."""
         # Check if we already have a config entry (integration already set up)
         existing_entries = self._async_current_entries()
         
         if existing_entries:
-            # Integration is already set up, this is for creating a new device
-            # Don't pass user_input as it's not relevant for the device category step
-            return await self.async_step_device_category(None)
-        else:
-            # First time setup - configure the integration
-            return await self.async_step_integration_setup(user_input)
+            # Integration is already set up
+            # Only allow one instance of this integration
+            return self.async_abort(reason="single_instance_allowed")
+        
+        # First time setup - configure the integration
+        return await self.async_step_integration_setup(user_input)
 
     async def async_step_integration_setup(
         self, user_input: dict[str, Any] | None = None
@@ -111,6 +128,50 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=STEP_USER_DATA_SCHEMA,
             errors=errors,
         )
+    
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> OptionsFlowHandler:
+        """Get the options flow for this handler."""
+        return OptionsFlowHandler(config_entry)
+
+
+class OptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle options flow for Virtual digitalSTROM Devices."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize options flow."""
+        self.config_entry = config_entry
+        self._data: dict[str, Any] = {}
+
+    def _get_device_storage(self) -> DeviceStorage:
+        """Get the device storage instance."""
+        integration_dir = Path(__file__).parent
+        storage_path = integration_dir / STORAGE_FILE
+        return DeviceStorage(storage_path)
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Manage the options - entry point."""
+        return await self.async_step_device_menu(user_input)
+
+    async def async_step_device_menu(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Show device management menu."""
+        return self.async_show_menu(
+            step_id="device_menu",
+            menu_options=["add_device", "list_devices"],
+        )
+
+    async def async_step_add_device(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle adding a new virtual device."""
+        return await self.async_step_device_category(user_input)
 
     async def async_step_device_category(
         self, user_input: dict[str, Any] | None = None
@@ -126,12 +187,45 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             # Get the display name for the title
             category_name = _extract_category_name(category_value)
             
-            # For now, we'll just create an entry with the category
-            # Future steps will be added to configure the device details
-            return self.async_create_entry(
-                title=f"Virtual Device ({category_name})",
-                data=self._data
+            # Get device storage
+            device_storage = self._get_device_storage()
+            
+            # Get group_id from color
+            group_id = COLOR_TO_GROUP_ID.get(category_value, 0)
+            
+            # Create a new virtual device
+            device = VirtualDevice(
+                name=f"Virtual {category_name} Device",
+                group_id=group_id,
+                device_class=category_value,
+                model=f"{category_name} Device",
+                vendor_name=DEFAULT_VENDOR,
             )
+            
+            # Add to storage
+            if device_storage.add_device(device):
+                # Register device in Home Assistant's device registry as a child of the vDC hub
+                device_reg = dr.async_get(self.hass)
+                
+                # Get the vDC hub device identifier
+                vdc_data = self.hass.data.get(DOMAIN, {}).get(self.config_entry.entry_id, {})
+                vdc_dsuid = vdc_data.get("vdc_dsuid")
+                
+                if vdc_dsuid:
+                    device_reg.async_get_or_create(
+                        config_entry_id=self.config_entry.entry_id,
+                        identifiers={(DOMAIN, device.dsid)},
+                        name=device.name,
+                        manufacturer=device.vendor_name,
+                        model=device.model,
+                        via_device=(DOMAIN, vdc_dsuid),  # Link to vDC hub
+                    )
+                    _LOGGER.info("Created virtual device: %s (category: %s)", device.name, category_name)
+                
+                # Return to main menu after successful device creation
+                return self.async_abort(reason="device_created")
+            else:
+                errors["base"] = "device_creation_failed"
 
         # Create schema for category selection
         category_schema = vol.Schema({
@@ -142,6 +236,26 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="device_category",
             data_schema=category_schema,
             errors=errors,
+        )
+
+    async def async_step_list_devices(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """List existing devices."""
+        # Get device storage
+        device_storage = self._get_device_storage()
+        
+        devices = device_storage.get_all_devices()
+        
+        if not devices:
+            device_list = "No virtual devices created yet."
+        else:
+            device_list = "\n".join([f"• {device.name} (dsUID: {device.dsid})" for device in devices])
+        
+        return self.async_show_form(
+            step_id="list_devices",
+            data_schema=vol.Schema({}),
+            description_placeholders={"device_list": device_list},
         )
 
 

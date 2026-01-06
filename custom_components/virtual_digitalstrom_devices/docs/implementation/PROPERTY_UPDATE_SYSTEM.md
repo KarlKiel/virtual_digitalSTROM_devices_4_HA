@@ -90,7 +90,7 @@ await updater.config_updater.update_multiple_config_properties(
 All CONFIG property changes are **immediately persisted** to YAML:
 - Single updates trigger one file write
 - Batch updates trigger one file write for all changes
-- YAML file: `<config_dir>/virtual_digitalstrom_devices.yaml`
+- YAML file: `custom_components/virtual_digitalstrom_devices/virtual_digitalstrom_devices.yaml`
 
 ## STATE Property Updates
 

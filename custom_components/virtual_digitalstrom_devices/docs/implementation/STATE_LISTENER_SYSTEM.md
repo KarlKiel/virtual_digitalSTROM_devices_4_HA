@@ -131,9 +131,10 @@ from custom_components.virtual_digitalstrom_devices.state_listener import (
 )
 
 # Initialize manager with mapping file
+integration_dir = Path(__file__).parent
 manager = StateListenerManager(
     hass=hass,
-    mapping_file=Path(hass.config.path("virtual_digitalstrom_listener_mappings.yaml")),
+    mapping_file=integration_dir / "virtual_digitalstrom_listener_mappings.yaml",
 )
 
 # Add a global callback for all state updates (e.g., for persistence)
@@ -227,7 +228,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Virtual digitalSTROM Devices from a config entry."""
     
     # Initialize state listener manager
-    mapping_file = Path(hass.config.path(STATE_LISTENER_MAPPINGS_FILE))
+    integration_dir = Path(__file__).parent
+    mapping_file = integration_dir / STATE_LISTENER_MAPPINGS_FILE
     state_listener_manager = StateListenerManager(hass, mapping_file)
     
     # Add global callback for state persistence

@@ -57,10 +57,10 @@ The TCP port number for connecting to the digitalSTROM server (dSS).
 
 ## Persistence
 
-The vDC configuration is persisted to a YAML file in the Home Assistant configuration directory:
+The vDC configuration is persisted to a YAML file within the integration folder:
 
 ```
-config/virtual_digitalstrom_vdc_config.yaml
+custom_components/virtual_digitalstrom_devices/virtual_digitalstrom_vdc_config.yaml
 ```
 
 ### Example YAML Structure

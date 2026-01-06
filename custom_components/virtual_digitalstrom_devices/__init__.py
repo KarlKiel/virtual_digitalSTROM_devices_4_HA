@@ -8,8 +8,9 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 
-from .const import DOMAIN, STORAGE_FILE, STATE_LISTENER_MAPPINGS_FILE, VDC_CONFIG_FILE, CONF_DSS_PORT
+from .const import DOMAIN, STORAGE_FILE, STATE_LISTENER_MAPPINGS_FILE, VDC_CONFIG_FILE, CONF_DSS_PORT, DEFAULT_VENDOR
 from .storage import DeviceStorage, PropertyUpdater, VdcManager
 from .storage.state_restorer import restore_states_on_startup
 from .listeners import StateListenerManager, DeviceListenerConfigurator
@@ -24,8 +25,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Virtual digitalSTROM Devices from a config entry."""
     _LOGGER.debug("Setting up Virtual digitalSTROM Devices integration")
     
+    # Get the integration directory path
+    integration_dir = Path(__file__).parent
+    _LOGGER.debug("Integration directory: %s", integration_dir)
+    
     # Initialize vDC manager and create/update vDC entity
-    vdc_config_path = Path(hass.config.path(VDC_CONFIG_FILE))
+    vdc_config_path = integration_dir / VDC_CONFIG_FILE
     vdc_manager = VdcManager(vdc_config_path)
     
     # Get DSS port from config entry
@@ -40,12 +45,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         dss_port
     )
     
+    # Register the vDC as a device (hub) in Home Assistant's device registry
+    device_reg = dr.async_get(hass)
+    vdc_device = device_reg.async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={(DOMAIN, vdc_config["dsUID"])},
+        name=vdc_config.get("name", "Virtual digitalSTROM vDC"),
+        manufacturer=vdc_config.get("vendorName", "KarlKiel"),
+        model=vdc_config.get("model", "vDC"),
+        sw_version=vdc_config.get("modelVersion", "1.0"),
+    )
+    _LOGGER.info("Registered vDC as hub device: %s", vdc_device.id)
+    
     # Initialize device storage
-    storage_path = Path(hass.config.path(STORAGE_FILE))
+    storage_path = integration_dir / STORAGE_FILE
     device_storage = DeviceStorage(storage_path)
     
     # Initialize state listener manager
-    listener_mappings_path = Path(hass.config.path(STATE_LISTENER_MAPPINGS_FILE))
+    listener_mappings_path = integration_dir / STATE_LISTENER_MAPPINGS_FILE
     state_listener_manager = StateListenerManager(hass, listener_mappings_path)
     
     # Initialize device listener configurator
@@ -80,6 +97,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     devices = device_storage.get_all_devices()
     _LOGGER.info("Auto-configuring listeners for %d existing devices", len(devices))
     
+    # Register existing devices in device registry
+    device_reg = dr.async_get(hass)
+    vdc_dsuid = vdc_config["dsUID"]
+    for device in devices:
+        try:
+            # Register each device as a child of the vDC hub
+            device_reg.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, device.dsid)},
+                name=device.name,
+                manufacturer=device.vendor_name or DEFAULT_VENDOR,
+                model=device.model or "Virtual Device",
+                via_device=(DOMAIN, vdc_dsuid),  # Link to vDC hub
+            )
+            _LOGGER.debug("Registered device in device registry: %s", device.name)
+        except Exception as err:
+            _LOGGER.error(
+                "Error registering device %s in device registry: %s",
+                device.name,
+                err,
+                exc_info=True,
+            )
+    
     total_listeners = 0
     for device in devices:
         try:
@@ -102,6 +142,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {
         "vdc_manager": vdc_manager,
+        "vdc_device_id": vdc_device.id,
+        "vdc_dsuid": vdc_config["dsUID"],
         "device_storage": device_storage,
         "state_listener_manager": state_listener_manager,
         "device_configurator": device_configurator,
