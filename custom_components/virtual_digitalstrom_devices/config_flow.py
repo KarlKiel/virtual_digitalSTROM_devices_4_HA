@@ -252,8 +252,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Manage the options - entry point."""
-        # Show integration settings directly instead of menu
-        return await self.async_step_integration_settings(user_input)
+        # Show device management menu (original behavior)
+        return await self.async_step_device_menu(user_input)
 
     async def async_step_main_menu(
         self, user_input: dict[str, Any] | None = None
