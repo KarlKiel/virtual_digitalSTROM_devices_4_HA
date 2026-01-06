@@ -15,7 +15,7 @@ import yaml
 # Handle both package imports (when used as Home Assistant integration)
 # and standalone imports (for examples/testing)
 try:
-    from .virtual_device import VirtualDevice
+    from ..models.virtual_device import VirtualDevice
 except ImportError:
     import virtual_device  # type: ignore
     VirtualDevice = virtual_device.VirtualDevice  # type: ignore

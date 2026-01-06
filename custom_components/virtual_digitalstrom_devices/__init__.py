@@ -10,12 +10,9 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN, STORAGE_FILE, STATE_LISTENER_MAPPINGS_FILE, VDC_CONFIG_FILE, CONF_DSS_PORT
-from .device_storage import DeviceStorage
-from .state_listener_manager import StateListenerManager
-from .device_listener_configurator import DeviceListenerConfigurator
-from .property_updater import PropertyUpdater
-from .state_restorer import restore_states_on_startup
-from .vdc_manager import VdcManager
+from .storage import DeviceStorage, PropertyUpdater, VdcManager
+from .storage.state_restorer import restore_states_on_startup
+from .listeners import StateListenerManager, DeviceListenerConfigurator
 
 _LOGGER = logging.getLogger(__name__)
 

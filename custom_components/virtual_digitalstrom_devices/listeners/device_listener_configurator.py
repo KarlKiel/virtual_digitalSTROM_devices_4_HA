@@ -23,7 +23,7 @@ from .state_listener import (
     AttributeStateListener,
 )
 from .state_listener_manager import StateListenerManager
-from .virtual_device import VirtualDevice
+from ..models.virtual_device import VirtualDevice
 
 _LOGGER = logging.getLogger(__name__)
 

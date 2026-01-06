@@ -20,52 +20,76 @@ This integration will be available through HACS in the future.
 1. In Home Assistant, go to **Settings** → **Devices & Services**
 2. Click the **+ Add Integration** button
 3. Search for "Virtual digitalSTROM Devices"
-4. Follow the configuration steps
+4. Follow the configuration steps to set up the integration
+5. Once set up, click **Add Entry** to create virtual devices
 
 ## Features
 
+- **User-friendly device creation** via configuration UI with category selection
 - Create virtual digitalSTROM devices based on Home Assistant entities
 - Manage digitalSTROM vDSDs
 - Integration with Home Assistant's configuration UI
 - **Automatic state persistence and restoration across restarts**
   - Critical device states (heating/cooling levels, channel values, sensor readings) are saved to YAML
   - States automatically restored on Home Assistant startup
-  - See [STATE_RESTORATION.md](custom_components/virtual_digitalstrom_devices/STATE_RESTORATION.md) for details
+  - See [STATE_RESTORATION.md](custom_components/virtual_digitalstrom_devices/docs/implementation/STATE_RESTORATION.md) for details
 - Full support for all digitalSTROM device classes (12 standard classes)
   - Yellow (Lights), Gray (Blinds), Blue (Climate), Cyan (Audio), Magenta (Video)
   - Black (Joker - Configurable), and more
-- See [DEVICE_CLASSES.md](custom_components/virtual_digitalstrom_devices/DEVICE_CLASSES.md) for complete device class documentation
+- See [DEVICE_CLASSES.md](custom_components/virtual_digitalstrom_devices/docs/implementation/DEVICE_CLASSES.md) for complete device class documentation
+
+## Storage Locations
+
+The integration stores its configuration data in the Home Assistant configuration directory:
+
+```
+/config/
+├── virtual_digitalstrom_devices.yaml           # Device configurations
+├── virtual_digitalstrom_listener_mappings.yaml # State listener mappings
+└── virtual_digitalstrom_vdc_config.yaml        # vDC entity configuration
+```
+
+These files are automatically managed by the integration and persist across restarts.
 
 ## Development
 
 This integration is under active development. Contributions are welcome!
 
-### Structure
+### Project Structure
 
 ```
 custom_components/virtual_digitalstrom_devices/
 ├── __init__.py              # Integration setup and entry point
 ├── config_flow.py           # Configuration UI flow
-├── const.py                 # Constants used throughout the integration
-├── device_classes.py        # digitalSTROM device classes and color groups
-├── device_storage.py        # YAML-based device persistence
-├── virtual_device.py        # Virtual device data model
-├── state_restorer.py        # State restoration on startup
-├── state_listener.py        # State tracking from HA entities
-├── state_listener_manager.py # State listener coordination
-├── property_updater.py      # Property update and persistence
-├── device_listener_configurator.py # Auto-configure listeners
-├── DEVICE_CLASSES.md        # Device classes documentation
-├── DEVICE_STORAGE.md        # Device persistence documentation
-├── STATE_RESTORATION.md     # State restoration documentation
-├── STATE_LISTENER_SYSTEM.md # State listener documentation
-├── PROPERTY_UPDATE_SYSTEM.md # Property update documentation
-├── example_*.py             # Example scripts
+├── const.py                 # Constants and configuration
 ├── manifest.json            # Integration metadata
 ├── strings.json             # UI strings
-└── translations/
-    └── en.json              # English translations
+├── translations/            # Localized UI strings
+│   └── en.json
+├── api/                     # vDC Protocol Implementation
+│   ├── message_builder.py
+│   ├── message_handler.py
+│   └── vdc_message_dispatcher.py
+├── models/                  # Data Models
+│   ├── device_classes.py
+│   ├── virtual_device.py
+│   └── dsuid_generator.py
+├── storage/                 # Persistence Layer
+│   ├── device_storage.py
+│   ├── vdc_manager.py
+│   ├── property_updater.py
+│   └── state_restorer.py
+├── listeners/               # State Tracking
+│   ├── state_listener.py
+│   ├── state_listener_manager.py
+│   └── device_listener_configurator.py
+└── docs/                    # Documentation
+    ├── implementation/      # Technical documentation
+    ├── examples/            # Example scripts
+    └── STRUCTURE.md         # Detailed structure documentation
 ```
+
+For a detailed explanation of the project structure, see [STRUCTURE.md](custom_components/virtual_digitalstrom_devices/docs/STRUCTURE.md).
 
 ### Device Classes
 
@@ -79,7 +103,17 @@ The integration supports all 12 standard digitalSTROM device classes organized b
 - **Black (Joker)**: Configurable devices
 - Additional groups for Security (Red), Access (Green), and Single Devices (White)
 
-For detailed information about device classes, see [DEVICE_CLASSES.md](custom_components/virtual_digitalstrom_devices/DEVICE_CLASSES.md).
+For detailed information about device classes, see [DEVICE_CLASSES.md](custom_components/virtual_digitalstrom_devices/docs/implementation/DEVICE_CLASSES.md).
+
+### Documentation
+
+All documentation is organized in the `docs/` directory:
+
+- **Implementation docs**: `docs/implementation/` - Technical documentation
+- **Examples**: `docs/examples/` - Example scripts
+- **External references**: `/docs/external/` - digitalSTROM specifications and API docs
+
+See [docs/README.md](custom_components/virtual_digitalstrom_devices/docs/README.md) for a complete documentation index.
 
 ## Support
 

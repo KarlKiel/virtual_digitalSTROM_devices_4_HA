@@ -22,8 +22,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.service import async_call_from_config
 
 from .device_storage import DeviceStorage
-from .state_listener import StatePropertyType
-from .virtual_device import VirtualDevice
+from ..listeners.state_listener import StatePropertyType
+from ..models.virtual_device import VirtualDevice
 
 _LOGGER = logging.getLogger(__name__)
 

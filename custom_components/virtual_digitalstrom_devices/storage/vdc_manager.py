@@ -20,7 +20,7 @@ import yaml
 # Handle both package imports (when used as Home Assistant integration)
 # and standalone imports (for testing)
 try:
-    from .dsuid_generator import generate_dsuid
+    from ..models.dsuid_generator import generate_dsuid
 except ImportError:
     from dsuid_generator import generate_dsuid
 
