@@ -14,13 +14,63 @@
         }
       },
       "device_category": {
-        "title": "Create Virtual digitalSTROM Device",
+        "title": "Create Virtual digitalSTROM Device - Step 1: Category",
         "description": "Select the category for your new virtual device. Each category represents a different type of digitalSTROM device with specific functions and capabilities.",
         "data": {
           "category": "Device Category"
         },
         "data_description": {
           "category": "Choose the color group that best matches your device type:\n\n• Yellow (Lights) - All lighting devices\n• Gray (Blinds) - Shading and blind control\n• Blue (Climate) - Heating, cooling, ventilation, windows\n• Cyan (Audio) - Audio playback devices\n• Magenta (Video) - TV and video devices\n• Red (Security) - Alarms, fire, panic systems\n• Green (Access) - Doors, doorbells, access control\n• White (Single Devices) - Individual appliances like fridges and coffee makers\n• Black (Joker) - Configurable/customizable devices"
+        }
+      },
+      "device_config": {
+        "title": "Create Virtual digitalSTROM Device - Step 2: Configuration",
+        "description": "Configure the basic properties of your virtual device. Click 'Extended Configuration' for additional optional settings.",
+        "data": {
+          "name": "Device Name",
+          "model": "Model",
+          "display_id": "Display ID",
+          "group_id": "Primary Group"
+        },
+        "data_description": {
+          "name": "A user-friendly name for your device (e.g., 'Living Room Ceiling Light', 'Bedroom Blind').\n\nThis name will be used to identify the device in Home Assistant and digitalSTROM.",
+          "model": "The model name of your device (e.g., 'LED Dimmer', 'Smart Blind Controller').\n\nThis identifies the type or model of the physical or virtual device.",
+          "display_id": "A human-readable identifier that would be printed on a physical device (e.g., serial number, device label).\n\nThis can be left empty if not applicable for virtual devices.",
+          "group_id": "Select the primary functional group for this Joker device.\n\nJoker (Black) devices are configurable and can be assigned to any functional group. This determines the device's primary behavior and which scenes it responds to."
+        }
+      },
+      "extended_config": {
+        "title": "Extended Configuration (Optional)",
+        "description": "Configure additional optional properties for your device. All fields are optional and can be left empty.",
+        "data": {
+          "model_version": "Model Version",
+          "model_uid": "Model UID",
+          "hardware_version": "Hardware Version",
+          "hardware_guid": "Hardware GUID",
+          "hardware_model_guid": "Hardware Model GUID",
+          "vendor_name": "Vendor Name",
+          "vendor_guid": "Vendor GUID",
+          "oem_guid": "OEM GUID",
+          "oem_model_guid": "OEM Model GUID",
+          "device_class": "Device Class",
+          "device_class_version": "Device Class Version",
+          "ha_entity_id": "Home Assistant Entity ID",
+          "active": "Active"
+        },
+        "data_description": {
+          "model_version": "The firmware or software version of the device model (e.g., '1.0.0', 'v2.3').\n\nThis helps track device capabilities and compatibility.",
+          "model_uid": "A unique identifier for this functional model in the digitalSTROM system.\n\nThis is used to identify devices with the same functional behavior.",
+          "hardware_version": "The hardware revision or version string (e.g., 'Rev A', '1.2').\n\nUseful for tracking physical device versions.",
+          "hardware_guid": "Hardware GUID in URN format (e.g., 'gs1:01:12345', 'uuid:...', 'macaddress:...').\n\nThis uniquely identifies the hardware and is used for dSUID generation if provided.",
+          "hardware_model_guid": "Hardware model GUID identifying the specific hardware model.\n\nUsed to group devices with the same hardware design.",
+          "vendor_name": "The manufacturer or vendor name (e.g., 'Acme Corp', 'SmartHome Inc').\n\nDefaults to 'KarlKiel' if not specified.",
+          "vendor_guid": "Vendor GUID in URN format to uniquely identify the manufacturer.\n\nUsed for vendor-specific identification in the digitalSTROM ecosystem.",
+          "oem_guid": "OEM (Original Equipment Manufacturer) product GUID.\n\nUsed when the device is manufactured by a third party.",
+          "oem_model_guid": "OEM model GUID, often a GTIN (Global Trade Item Number).\n\nHelps identify the commercial product model.",
+          "device_class": "The digitalSTROM device class profile name.\n\nDefaults to the selected category (color group) if not specified.",
+          "device_class_version": "The version of the device class profile specification.\n\nIndicates which version of the device class specification this device implements.",
+          "ha_entity_id": "The Home Assistant entity ID to map this virtual device to (e.g., 'light.living_room').\n\nThis creates a connection between the virtualSTROM device and an existing Home Assistant entity.",
+          "active": "Whether the device is operational and can function normally.\n\nWhen disabled, the device may still be visible but won't respond to commands."
         }
       }
     },
@@ -33,7 +83,8 @@
     "abort": {
       "already_configured": "Device is already configured",
       "single_instance_allowed": "Only one instance of this integration is allowed. To add virtual devices, go to the integration and click Configure.",
-      "device_created": "Virtual device created successfully!"
+      "device_created": "Virtual device created successfully!",
+      "user_cancelled": "Device creation cancelled"
     }
   },
   "options": {
@@ -61,14 +112,74 @@
           "list_devices": "View Existing Devices"
         }
       },
+      "device_config_menu": {
+        "title": "Device Configuration Options",
+        "description": "Choose what to do next with your device configuration",
+        "menu_options": {
+          "create_device": "Create Device (Finish)",
+          "extended_config": "Extended Configuration (Optional)",
+          "back_to_category": "Back to Category Selection",
+          "cancel_creation": "Cancel Device Creation"
+        }
+      },
       "device_category": {
-        "title": "Create Virtual digitalSTROM Device",
+        "title": "Create Virtual digitalSTROM Device - Step 1: Category",
         "description": "Select the category for your new virtual device. Each category represents a different type of digitalSTROM device with specific functions and capabilities.",
         "data": {
           "category": "Device Category"
         },
         "data_description": {
           "category": "Choose the color group that best matches your device type:\n\n• Yellow (Lights) - All lighting devices\n• Gray (Blinds) - Shading and blind control\n• Blue (Climate) - Heating, cooling, ventilation, windows\n• Cyan (Audio) - Audio playback devices\n• Magenta (Video) - TV and video devices\n• Red (Security) - Alarms, fire, panic systems\n• Green (Access) - Doors, doorbells, access control\n• White (Single Devices) - Individual appliances like fridges and coffee makers\n• Black (Joker) - Configurable/customizable devices"
+        }
+      },
+      "device_config": {
+        "title": "Create Virtual digitalSTROM Device - Step 2: Configuration",
+        "description": "Configure the basic properties of your virtual device. Click 'Extended Configuration' for additional optional settings.",
+        "data": {
+          "name": "Device Name",
+          "model": "Model",
+          "display_id": "Display ID",
+          "group_id": "Primary Group"
+        },
+        "data_description": {
+          "name": "A user-friendly name for your device (e.g., 'Living Room Ceiling Light', 'Bedroom Blind').\n\nThis name will be used to identify the device in Home Assistant and digitalSTROM.",
+          "model": "The model name of your device (e.g., 'LED Dimmer', 'Smart Blind Controller').\n\nThis identifies the type or model of the physical or virtual device.",
+          "display_id": "A human-readable identifier that would be printed on a physical device (e.g., serial number, device label).\n\nThis can be left empty if not applicable for virtual devices.",
+          "group_id": "Select the primary functional group for this Joker device.\n\nJoker (Black) devices are configurable and can be assigned to any functional group. This determines the device's primary behavior and which scenes it responds to."
+        }
+      },
+      "extended_config": {
+        "title": "Extended Configuration (Optional)",
+        "description": "Configure additional optional properties for your device. All fields are optional and can be left empty.",
+        "data": {
+          "model_version": "Model Version",
+          "model_uid": "Model UID",
+          "hardware_version": "Hardware Version",
+          "hardware_guid": "Hardware GUID",
+          "hardware_model_guid": "Hardware Model GUID",
+          "vendor_name": "Vendor Name",
+          "vendor_guid": "Vendor GUID",
+          "oem_guid": "OEM GUID",
+          "oem_model_guid": "OEM Model GUID",
+          "device_class": "Device Class",
+          "device_class_version": "Device Class Version",
+          "ha_entity_id": "Home Assistant Entity ID",
+          "active": "Active"
+        },
+        "data_description": {
+          "model_version": "The firmware or software version of the device model (e.g., '1.0.0', 'v2.3').\n\nThis helps track device capabilities and compatibility.",
+          "model_uid": "A unique identifier for this functional model in the digitalSTROM system.\n\nThis is used to identify devices with the same functional behavior.",
+          "hardware_version": "The hardware revision or version string (e.g., 'Rev A', '1.2').\n\nUseful for tracking physical device versions.",
+          "hardware_guid": "Hardware GUID in URN format (e.g., 'gs1:01:12345', 'uuid:...', 'macaddress:...').\n\nThis uniquely identifies the hardware and is used for dSUID generation if provided.",
+          "hardware_model_guid": "Hardware model GUID identifying the specific hardware model.\n\nUsed to group devices with the same hardware design.",
+          "vendor_name": "The manufacturer or vendor name (e.g., 'Acme Corp', 'SmartHome Inc').\n\nDefaults to 'KarlKiel' if not specified.",
+          "vendor_guid": "Vendor GUID in URN format to uniquely identify the manufacturer.\n\nUsed for vendor-specific identification in the digitalSTROM ecosystem.",
+          "oem_guid": "OEM (Original Equipment Manufacturer) product GUID.\n\nUsed when the device is manufactured by a third party.",
+          "oem_model_guid": "OEM model GUID, often a GTIN (Global Trade Item Number).\n\nHelps identify the commercial product model.",
+          "device_class": "The digitalSTROM device class profile name.\n\nDefaults to the selected category (color group) if not specified.",
+          "device_class_version": "The version of the device class profile specification.\n\nIndicates which version of the device class specification this device implements.",
+          "ha_entity_id": "The Home Assistant entity ID to map this virtual device to (e.g., 'light.living_room').\n\nThis creates a connection between the virtualSTROM device and an existing Home Assistant entity.",
+          "active": "Whether the device is operational and can function normally.\n\nWhen disabled, the device may still be visible but won't respond to commands."
         }
       },
       "list_devices": {

@@ -260,14 +260,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             vol.Required("display_id", default=self._data.get("display_id", "")): str,
         }
         
-        # Add group_id selection for Black devices
+        # Add primaryGroup selection for Black devices
         if is_black_device:
-            # Create options for group_id (exclude Black itself)
-            group_id_options = {
+            # Create options for primary group (exclude Black itself)
+            primary_group_options = {
                 k: v for k, v in COLOR_GROUP_OPTIONS.items() 
                 if k != DSColor.BLACK.value
             }
-            schema_dict[vol.Required("group_id", default=self._data.get("group_id"))] = vol.In(group_id_options)
+            schema_dict[vol.Required("primary_group", default=self._data.get("primary_group"))] = vol.In(primary_group_options)
         
         config_schema = vol.Schema(schema_dict)
         
@@ -327,12 +327,17 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
         
         if user_input is not None:
+            # Check if user clicked cancel
+            if user_input.get("_cancel"):
+                # Return to main config screen without saving
+                return await self.async_step_device_config(None)
+            
             # Store extended configuration
             self._extended_config.update(user_input)
             
-            # Return to main config menu
-            return await self.async_step_device_config_menu(None)
-
+            # Return to main config screen
+            return await self.async_step_device_config(None)
+        
         # Build schema for optional properties
         schema_dict = {
             vol.Optional("model_version", default=self._extended_config.get("model_version", "")): str,
@@ -381,7 +386,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # Determine group_id
         # For Black devices, use the selected primary_group
         # For others, use the category color mapping
-        if category_value == DSColor.BLACK.value and "group_id" in self._data:
+        if category_value == DSColor.BLACK.value and "primary_group" in self._data:
             group_id = COLOR_TO_GROUP_ID.get(self._data["primary_group"], DSGroupID.JOKER.value)
         else:
             group_id = COLOR_TO_GROUP_ID.get(category_value, 0)
@@ -555,27 +560,34 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         is_black_device = category_value == DSColor.BLACK.value
         
         if user_input is not None:
+            # Check if user clicked extended configuration
+            if user_input.get("_extended_config"):
+                return await self.async_step_extended_config(None)
+            
             # Store the configuration
             self._data.update(user_input)
             
-            # Show menu with Next, Extended Config, Back, Cancel options
-            return await self.async_step_device_config_menu(None)
+            # Create the device with collected configuration
+            if await self._create_configured_device():
+                return self.async_abort(reason="device_created")
+            else:
+                errors["base"] = "device_creation_failed"
         
-        # Build schema based on device type with saved values
+        # Build schema based on device type
         schema_dict = {
-            vol.Required("name", default=self._data.get("name", "")): str,
-            vol.Required("model", default=self._data.get("model", "")): str,
-            vol.Required("display_id", default=self._data.get("display_id", "")): str,
+            vol.Required("name", default=""): str,
+            vol.Required("model", default=""): str,
+            vol.Required("display_id", default=""): str,
         }
         
-        # Add group_id selection for Black devices
+        # Add primaryGroup selection for Black devices
         if is_black_device:
-            # Create options for group_id (exclude Black itself)
-            group_id_options = {
+            # Create options for primary group (exclude Black itself)
+            primary_group_options = {
                 k: v for k, v in COLOR_GROUP_OPTIONS.items() 
                 if k != DSColor.BLACK.value
             }
-            schema_dict[vol.Required("group_id", default=self._data.get("group_id"))] = vol.In(group_id_options)
+            schema_dict[vol.Required("primary_group")] = vol.In(primary_group_options)
         
         config_schema = vol.Schema(schema_dict)
         
@@ -585,44 +597,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             errors=errors,
         )
     
-    async def async_step_device_config_menu(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Show menu after device config is filled."""
-        return self.async_show_menu(
-            step_id="device_config_menu",
-            menu_options=["create_device", "extended_config", "back_to_category", "cancel_creation"],
-        )
-    
-    async def async_step_create_device(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Create the device with current configuration."""
-        errors: dict[str, str] = {}
-        
-        # Create the device with collected configuration
-        if await self._create_configured_device():
-            return self.async_abort(reason="device_created")
-        else:
-            errors["base"] = "device_creation_failed"
-        
-        # If creation failed, go back to config
-        return await self.async_step_device_config(None)
-    
-    async def async_step_back_to_category(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Go back to category selection."""
-        # Clear stored data except extended config
-        self._data = {}
-        return await self.async_step_device_category(None)
-    
-    async def async_step_cancel_creation(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Cancel device creation."""
-        return self.async_abort(reason="user_cancelled")
-    
     async def async_step_extended_config(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
@@ -630,12 +604,17 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         errors: dict[str, str] = {}
         
         if user_input is not None:
+            # Check if user clicked cancel
+            if user_input.get("_cancel"):
+                # Return to main config screen without saving
+                return await self.async_step_device_config(None)
+            
             # Store extended configuration
             self._extended_config.update(user_input)
             
-            # Return to main config menu
-            return await self.async_step_device_config_menu(None)
-
+            # Return to main config screen
+            return await self.async_step_device_config(None)
+        
         # Build schema for optional properties
         schema_dict = {
             vol.Optional("model_version", default=self._extended_config.get("model_version", "")): str,
@@ -681,7 +660,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         # Determine group_id
         # For Black devices, use the selected primary_group
         # For others, use the category color mapping
-        if category_value == DSColor.BLACK.value and "group_id" in self._data:
+        if category_value == DSColor.BLACK.value and "primary_group" in self._data:
             group_id = COLOR_TO_GROUP_ID.get(self._data["primary_group"], DSGroupID.JOKER.value)
         else:
             group_id = COLOR_TO_GROUP_ID.get(category_value, 0)
