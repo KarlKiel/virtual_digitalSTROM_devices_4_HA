@@ -1,6 +1,6 @@
 """Constants for the Virtual digitalSTROM Devices integration."""
 
-from .device_classes import (
+from .models.device_classes import (
     ADDITIONAL_COLOR_GROUPS,
     DEVICE_CLASSES,
     DSColor,

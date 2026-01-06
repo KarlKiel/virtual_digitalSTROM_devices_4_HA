@@ -15,8 +15,8 @@ from homeassistant.core import HomeAssistant
 
 from .device_storage import DeviceStorage
 from .property_updater import PropertyUpdater, StatePropertyUpdater
-from .state_listener import StatePropertyType
-from .virtual_device import VirtualDevice
+from ..listeners.state_listener import StatePropertyType
+from ..models.virtual_device import VirtualDevice
 
 _LOGGER = logging.getLogger(__name__)
 
