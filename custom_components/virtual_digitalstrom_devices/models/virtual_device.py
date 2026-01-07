@@ -68,6 +68,7 @@ class VirtualDevice:
         group_id (int): digitalSTROM group ID (device class)
         ha_entity_id (str): Home Assistant entity ID this device is mapped to
         zone_id (int): Zone/room ID where the device is located
+        icon (str): Material Design Icon for HA display (e.g., 'mdi:lightbulb')
         attributes (dict): Additional device-specific attributes
     """
     
