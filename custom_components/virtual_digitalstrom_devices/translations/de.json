@@ -182,7 +182,7 @@
       },
       "list_devices": {
         "title": "Vorhandene Geräte",
-        "description": "Liste aller virtuellen digitalSTROM-Geräte"
+        "description": "Liste der virtuellen Geräte:\n\n{device_list}"
       }
     }
   }
