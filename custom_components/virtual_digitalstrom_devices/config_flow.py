@@ -45,19 +45,6 @@ COLOR_TO_GROUP_ID = {
     DSColor.BLACK.value: DSGroupID.JOKER.value,
 }
 
-# Map color to default icon
-COLOR_TO_DEFAULT_ICON = {
-    DSColor.YELLOW.value: "mdi:lightbulb",
-    DSColor.GRAY.value: "mdi:blinds-horizontal",
-    DSColor.BLUE.value: "mdi:sun-thermometer",
-    DSColor.CYAN.value: "mdi:speaker",
-    DSColor.MAGENTA.value: "mdi:video",
-    DSColor.RED.value: "mdi:shield-home",
-    DSColor.GREEN.value: "mdi:doorbell",
-    DSColor.WHITE.value: "mdi:washing-machine",
-    DSColor.BLACK.value: "mdi:select-all",
-}
-
 # Configuration schema
 STEP_USER_DATA_SCHEMA = vol.Schema({
     vol.Required("name", default=DEFAULT_NAME): str,
@@ -176,7 +163,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         """Initialize the config flow."""
         self._data: dict[str, Any] = {}
-        self._extended_config: dict[str, Any] = {}
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -229,217 +215,35 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_device_category(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Handle Step 1: Device name and category selection."""
+        """Handle the device category selection step."""
         errors: dict[str, str] = {}
         
         if user_input is not None:
-            # Store the name and category
-            self._data = {
-                "name": user_input["name"],
-                "category": user_input["category"]
-            }
+            # Store the selected category
+            category_value = user_input["category"]
+            self._data = {"category": category_value}
             
-            # Proceed to device properties screen (Step 2)
-            return await self.async_step_device_config(None)
+            # Get the first (and only) config entry for this integration
+            existing_entries = self._async_current_entries()
+            if existing_entries:
+                # Create and register the device
+                if await _create_virtual_device(self.hass, category_value, existing_entries[0].entry_id):
+                    return self.async_abort(reason="device_created")
+                else:
+                    errors["base"] = "device_creation_failed"
+            else:
+                errors["base"] = "device_creation_failed"
 
-        # Create schema with name first, then category
-        schema = vol.Schema({
-            vol.Required("name", default=self._data.get("name", "")): str,
+        # Create schema for category selection
+        category_schema = vol.Schema({
             vol.Required("category"): vol.In(COLOR_GROUP_OPTIONS),
         })
 
         return self.async_show_form(
             step_id="device_category",
-            data_schema=schema,
+            data_schema=category_schema,
             errors=errors,
         )
-    
-    async def async_step_device_config(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Handle Step 2: Required device properties (model, display_id, model_uid) and icon."""
-        from homeassistant.helpers import selector
-        
-        errors: dict[str, str] = {}
-        
-        if user_input is not None:
-            # Check if user wants to go back
-            if user_input.get("_back"):
-                return await self.async_step_device_category(None)
-            
-            # Store the configuration data
-            self._data.update(user_input)
-            
-            # Proceed to optional settings (Step 3)
-            return await self.async_step_optional_settings(None)
-        
-        # Get category for display
-        category = self._data.get("category", "")
-        category_name = _extract_category_name(category)
-        
-        # Get default icon based on category
-        default_icon = COLOR_TO_DEFAULT_ICON.get(category, "mdi:devices")
-        
-        # Build schema with ICON FIRST (using HA's icon selector), then 3 required fields
-        config_schema = vol.Schema({
-            vol.Optional("icon", default=self._data.get("icon", default_icon)): selector.IconSelector(),
-            vol.Required("model", default=self._data.get("model", "")): str,
-            vol.Required("display_id", default=self._data.get("display_id", "")): str,
-            vol.Required("model_uid", default=self._data.get("model_uid", "")): str,
-        })
-        
-        return self.async_show_form(
-            step_id="device_config",
-            data_schema=config_schema,
-            errors=errors,
-            description_placeholders={
-                "category": category_name,
-                "name": self._data.get("name", ""),
-            },
-        )
-     
-    async def async_step_optional_settings(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Handle Step 3: Optional expert settings (all optional CONFIG properties)."""
-        errors: dict[str, str] = {}
-        
-        if user_input is not None:
-            # Check if user wants to go back
-            if user_input.get("_back"):
-                return await self.async_step_device_config(None)
-            
-            # Store optional configuration
-            self._extended_config.update(user_input)
-            
-            # Proceed to create device
-            return await self.async_step_create_device(None)
-
-        # Build schema for ALL optional properties (excluding active and icon - icon moved to step 2)
-        schema_dict = {
-            vol.Optional("model_version", default=self._extended_config.get("model_version", "")): str,
-            vol.Optional("hardware_version", default=self._extended_config.get("hardware_version", "")): str,
-            vol.Optional("hardware_guid", default=self._extended_config.get("hardware_guid", "")): str,
-            vol.Optional("hardware_model_guid", default=self._extended_config.get("hardware_model_guid", "")): str,
-            vol.Optional("vendor_name", default=self._extended_config.get("vendor_name", "")): str,
-            vol.Optional("vendor_guid", default=self._extended_config.get("vendor_guid", "")): str,
-            vol.Optional("oem_guid", default=self._extended_config.get("oem_guid", "")): str,
-            vol.Optional("oem_model_guid", default=self._extended_config.get("oem_model_guid", "")): str,
-            vol.Optional("device_class", default=self._extended_config.get("device_class", "")): str,
-            vol.Optional("device_class_version", default=self._extended_config.get("device_class_version", "")): str,
-            vol.Optional("ha_entity_id", default=self._extended_config.get("ha_entity_id", "")): str,
-        }
-        
-        extended_schema = vol.Schema(schema_dict)
-        
-        return self.async_show_form(
-            step_id="optional_settings",
-            data_schema=extended_schema,
-            errors=errors,
-            description_placeholders={
-                "name": self._data.get("name", ""),
-                "category": _extract_category_name(self._data.get("category", "")),
-            },
-        )
-    
-    async def async_step_create_device(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Create the device with current configuration."""
-        errors: dict[str, str] = {}
-        
-        # Get the first (and only) config entry for this integration
-        existing_entries = self._async_current_entries()
-        if existing_entries:
-            # Create the device with collected configuration
-            if await self._create_configured_device(existing_entries[0].entry_id):
-                return self.async_abort(reason="device_created")
-            else:
-                errors["base"] = "device_creation_failed"
-        else:
-            errors["base"] = "device_creation_failed"
-        
-        # If creation failed, go back to config
-        return await self.async_step_device_config(None)
-    
-    async def async_step_cancel_creation(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Cancel device creation."""
-        return self.async_abort(reason="user_cancelled")
-    
-    async def _create_configured_device(self, config_entry_id: str) -> bool:
-        """Create device with all collected configuration data.
-        
-        Args:
-            config_entry_id: The config entry ID to register the device under
-            
-        Returns:
-            True if device was created successfully, False otherwise
-        """
-        category_value = self._data.get("category", "")
-        category_name = _extract_category_name(category_value)
-        
-        # Get device storage
-        device_storage = await _get_device_storage_async(self.hass)
-        
-        # Determine group_id from category color mapping
-        # Black devices get JOKER group, all others get their respective group
-        group_id = COLOR_TO_GROUP_ID.get(category_value, 0)
-        
-        # Merge extended config into data
-        all_config = {**self._data, **self._extended_config}
-        
-        # Create device with user-provided configuration
-        device = VirtualDevice(
-            # Auto-derived properties
-            # device_id is auto-generated by default factory
-            # dsid will be auto-generated by __post_init__
-            type="vdSD",  # Always vdSD
-            
-            # Required CONFIG properties from user
-            name=all_config.get("name", f"Virtual {category_name} Device"),
-            model=all_config.get("model", f"{category_name} Device"),
-            display_id=all_config.get("display_id", ""),
-            
-            # Group/zone properties
-            group_id=group_id,
-            zone_id=0,  # NULL/0 as initial value per requirements
-            
-            # Device class
-            device_class=all_config.get("device_class", category_value),
-            
-            # Optional CONFIG properties from extended config
-            model_version=all_config.get("model_version", ""),
-            model_uid=all_config.get("model_uid", ""),
-            hardware_version=all_config.get("hardware_version", ""),
-            hardware_guid=all_config.get("hardware_guid", ""),
-            hardware_model_guid=all_config.get("hardware_model_guid", ""),
-            vendor_name=all_config.get("vendor_name", DEFAULT_VENDOR),
-            vendor_guid=all_config.get("vendor_guid", ""),
-            oem_guid=all_config.get("oem_guid", ""),
-            oem_model_guid=all_config.get("oem_model_guid", ""),
-            device_class_version=all_config.get("device_class_version", ""),
-            active=True,  # Always active by default (synced with HA device state)
-            ha_entity_id=all_config.get("ha_entity_id", ""),
-            icon=all_config.get("icon", ""),  # Icon selection support
-        )
-        
-        # Add to storage
-        if await self.hass.async_add_executor_job(device_storage.add_device, device):
-            # Register device in Home Assistant's device registry
-            device_reg = dr.async_get(self.hass)
-            device_reg.async_get_or_create(
-                config_entry_id=config_entry_id,
-                identifiers={(DOMAIN, device.dsid)},
-                name=device.name,
-                manufacturer=device.vendor_name or DEFAULT_VENDOR,
-                model=device.model,
-            )
-            _LOGGER.info("Created configured virtual device: %s (category: %s)", device.name, category_name)
-            return True
-        
-        return False
     
     @staticmethod
     @callback
@@ -456,7 +260,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
         self._data: dict[str, Any] = {}
-        self._extended_config: dict[str, Any] = {}
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -526,209 +329,30 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_device_category(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Handle Step 1: Device name and category selection."""
+        """Handle the device category selection step."""
         errors: dict[str, str] = {}
         
         if user_input is not None:
-            # Store the name and category
-            self._data = {
-                "name": user_input["name"],
-                "category": user_input["category"]
-            }
+            # Store the selected category
+            category_value = user_input["category"]
+            self._data = {"category": category_value}
             
-            # Proceed to device properties screen (Step 2)
-            return await self.async_step_device_config(None)
+            # Create and register the device
+            if await _create_virtual_device(self.hass, category_value, self.config_entry.entry_id):
+                return self.async_abort(reason="device_created")
+            else:
+                errors["base"] = "device_creation_failed"
 
-        # Create schema with name first, then category
-        schema = vol.Schema({
-            vol.Required("name", default=self._data.get("name", "")): str,
+        # Create schema for category selection
+        category_schema = vol.Schema({
             vol.Required("category"): vol.In(COLOR_GROUP_OPTIONS),
         })
 
         return self.async_show_form(
             step_id="device_category",
-            data_schema=schema,
+            data_schema=category_schema,
             errors=errors,
         )
-
-    async def async_step_device_config(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Handle Step 2: Required device properties (model, display_id, model_uid) and icon."""
-        from homeassistant.helpers import selector
-        
-        errors: dict[str, str] = {}
-        
-        if user_input is not None:
-            # Check if user wants to go back
-            if user_input.get("_back"):
-                return await self.async_step_device_category(None)
-            
-            # Store the configuration data
-            self._data.update(user_input)
-            
-            # Proceed to optional settings (Step 3)
-            return await self.async_step_optional_settings(None)
-        
-        # Get category for display
-        category = self._data.get("category", "")
-        category_name = _extract_category_name(category)
-        
-        # Get default icon based on category
-        default_icon = COLOR_TO_DEFAULT_ICON.get(category, "mdi:devices")
-        
-        # Build schema with ICON FIRST (using HA's icon selector), then 3 required fields
-        config_schema = vol.Schema({
-            vol.Optional("icon", default=self._data.get("icon", default_icon)): selector.IconSelector(),
-            vol.Required("model", default=self._data.get("model", "")): str,
-            vol.Required("display_id", default=self._data.get("display_id", "")): str,
-            vol.Required("model_uid", default=self._data.get("model_uid", "")): str,
-        })
-        
-        return self.async_show_form(
-            step_id="device_config",
-            data_schema=config_schema,
-            errors=errors,
-            description_placeholders={
-                "category": category_name,
-                "name": self._data.get("name", ""),
-            },
-        )
-     
-    async def async_step_optional_settings(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Handle Step 3: Optional expert settings (all optional CONFIG properties)."""
-        errors: dict[str, str] = {}
-        
-        if user_input is not None:
-            # Check if user wants to go back
-            if user_input.get("_back"):
-                return await self.async_step_device_config(None)
-            
-            # Store optional configuration
-            self._extended_config.update(user_input)
-            
-            # Proceed to create device
-            return await self.async_step_create_device(None)
-
-        # Build schema for ALL optional properties (excluding active and icon - icon moved to step 2)
-        schema_dict = {
-            vol.Optional("model_version", default=self._extended_config.get("model_version", "")): str,
-            vol.Optional("hardware_version", default=self._extended_config.get("hardware_version", "")): str,
-            vol.Optional("hardware_guid", default=self._extended_config.get("hardware_guid", "")): str,
-            vol.Optional("hardware_model_guid", default=self._extended_config.get("hardware_model_guid", "")): str,
-            vol.Optional("vendor_name", default=self._extended_config.get("vendor_name", "")): str,
-            vol.Optional("vendor_guid", default=self._extended_config.get("vendor_guid", "")): str,
-            vol.Optional("oem_guid", default=self._extended_config.get("oem_guid", "")): str,
-            vol.Optional("oem_model_guid", default=self._extended_config.get("oem_model_guid", "")): str,
-            vol.Optional("device_class", default=self._extended_config.get("device_class", "")): str,
-            vol.Optional("device_class_version", default=self._extended_config.get("device_class_version", "")): str,
-            vol.Optional("ha_entity_id", default=self._extended_config.get("ha_entity_id", "")): str,
-        }
-        
-        extended_schema = vol.Schema(schema_dict)
-        
-        return self.async_show_form(
-            step_id="optional_settings",
-            data_schema=extended_schema,
-            errors=errors,
-            description_placeholders={
-                "name": self._data.get("name", ""),
-                "category": _extract_category_name(self._data.get("category", "")),
-            },
-        )
-    
-    async def async_step_create_device(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Create the device with current configuration."""
-        errors: dict[str, str] = {}
-        
-        # Create the device with collected configuration
-        if await self._create_configured_device():
-            return self.async_abort(reason="device_created")
-        else:
-            errors["base"] = "device_creation_failed"
-        
-        # If creation failed, go back to config
-        return await self.async_step_device_config(None)
-    
-    async def async_step_cancel_creation(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Cancel device creation."""
-        return self.async_abort(reason="user_cancelled")
-    
-    async def _create_configured_device(self) -> bool:
-        """Create device with all collected configuration data.
-        
-        Returns:
-            True if device was created successfully, False otherwise
-        """
-        category_value = self._data.get("category", "")
-        category_name = _extract_category_name(category_value)
-        
-        # Get device storage
-        device_storage = await _get_device_storage_async(self.hass)
-        
-        # Determine group_id from category color mapping
-        # Black devices get JOKER group, all others get their respective group
-        group_id = COLOR_TO_GROUP_ID.get(category_value, 0)
-        
-        # Merge extended config into data
-        all_config = {**self._data, **self._extended_config}
-        
-        # Create device with user-provided configuration
-        device = VirtualDevice(
-            # Auto-derived properties
-            # device_id is auto-generated by default factory
-            # dsid will be auto-generated by __post_init__
-            type="vdSD",  # Always vdSD
-            
-            # Required CONFIG properties from user
-            name=all_config.get("name", f"Virtual {category_name} Device"),
-            model=all_config.get("model", f"{category_name} Device"),
-            display_id=all_config.get("display_id", ""),
-            
-            # Group/zone properties
-            group_id=group_id,
-            zone_id=0,  # NULL/0 as initial value per requirements
-            
-            # Device class
-            device_class=all_config.get("device_class", category_value),
-            
-            # Optional CONFIG properties from extended config
-            model_version=all_config.get("model_version", ""),
-            model_uid=all_config.get("model_uid", ""),
-            hardware_version=all_config.get("hardware_version", ""),
-            hardware_guid=all_config.get("hardware_guid", ""),
-            hardware_model_guid=all_config.get("hardware_model_guid", ""),
-            vendor_name=all_config.get("vendor_name", DEFAULT_VENDOR),
-            vendor_guid=all_config.get("vendor_guid", ""),
-            oem_guid=all_config.get("oem_guid", ""),
-            oem_model_guid=all_config.get("oem_model_guid", ""),
-            device_class_version=all_config.get("device_class_version", ""),
-            active=True,  # Always active by default (synced with HA device state)
-            ha_entity_id=all_config.get("ha_entity_id", ""),
-            icon=all_config.get("icon", ""),
-        )
-        
-        # Add to storage
-        if await self.hass.async_add_executor_job(device_storage.add_device, device):
-            # Register device in Home Assistant's device registry
-            device_reg = dr.async_get(self.hass)
-            device_reg.async_get_or_create(
-                config_entry_id=self.config_entry.entry_id,
-                identifiers={(DOMAIN, device.dsid)},
-                name=device.name,
-                manufacturer=device.vendor_name or DEFAULT_VENDOR,
-                model=device.model,
-            )
-            _LOGGER.info("Created configured virtual device: %s (category: %s)", device.name, category_name)
-            return True
-        
-        return False
 
     async def async_step_list_devices(
         self, user_input: dict[str, Any] | None = None
