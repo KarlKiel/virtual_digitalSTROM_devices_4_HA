@@ -45,6 +45,19 @@ COLOR_TO_GROUP_ID = {
     DSColor.BLACK.value: DSGroupID.JOKER.value,
 }
 
+# Map color to default icon
+COLOR_TO_DEFAULT_ICON = {
+    DSColor.YELLOW.value: "mdi:lightbulb",
+    DSColor.GRAY.value: "mdi:blinds-horizontal",
+    DSColor.BLUE.value: "mdi:sun-thermometer",
+    DSColor.CYAN.value: "mdi:speaker",
+    DSColor.MAGENTA.value: "mdi:video",
+    DSColor.RED.value: "mdi:shield-home",
+    DSColor.GREEN.value: "mdi:doorbell",
+    DSColor.WHITE.value: "mdi:washing-machine",
+    DSColor.BLACK.value: "mdi:select-all",
+}
+
 # Configuration schema
 STEP_USER_DATA_SCHEMA = vol.Schema({
     vol.Required("name", default=DEFAULT_NAME): str,
@@ -262,11 +275,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         category = self._data.get("category", "")
         category_name = _extract_category_name(category)
         
-        # Build schema with 3 required fields (model, display_id, model_uid)
+        # Get default icon based on category
+        default_icon = COLOR_TO_DEFAULT_ICON.get(category, "mdi:devices")
+        
+        # Build schema with 3 required fields (model, display_id, model_uid) and icon
         config_schema = vol.Schema({
             vol.Required("model", default=self._data.get("model", "")): str,
             vol.Required("display_id", default=self._data.get("display_id", "")): str,
             vol.Required("model_uid", default=self._data.get("model_uid", "")): str,
+            vol.Optional("icon", default=self._data.get("icon", default_icon)): str,
         })
         
         return self.async_show_form(
@@ -296,7 +313,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             # Proceed to create device
             return await self.async_step_create_device(None)
 
-        # Build schema for ALL optional properties (excluding active)
+        # Build schema for ALL optional properties (excluding active and icon - icon moved to step 2)
         schema_dict = {
             vol.Optional("model_version", default=self._extended_config.get("model_version", "")): str,
             vol.Optional("hardware_version", default=self._extended_config.get("hardware_version", "")): str,
@@ -309,7 +326,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             vol.Optional("device_class", default=self._extended_config.get("device_class", "")): str,
             vol.Optional("device_class_version", default=self._extended_config.get("device_class_version", "")): str,
             vol.Optional("ha_entity_id", default=self._extended_config.get("ha_entity_id", "")): str,
-            vol.Optional("icon", default=self._extended_config.get("icon", "")): str,
         }
         
         extended_schema = vol.Schema(schema_dict)
@@ -554,11 +570,15 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         category = self._data.get("category", "")
         category_name = _extract_category_name(category)
         
-        # Build schema with 3 required fields (model, display_id, model_uid)
+        # Get default icon based on category
+        default_icon = COLOR_TO_DEFAULT_ICON.get(category, "mdi:devices")
+        
+        # Build schema with 3 required fields (model, display_id, model_uid) and icon
         config_schema = vol.Schema({
             vol.Required("model", default=self._data.get("model", "")): str,
             vol.Required("display_id", default=self._data.get("display_id", "")): str,
             vol.Required("model_uid", default=self._data.get("model_uid", "")): str,
+            vol.Optional("icon", default=self._data.get("icon", default_icon)): str,
         })
         
         return self.async_show_form(
@@ -588,7 +608,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             # Proceed to create device
             return await self.async_step_create_device(None)
 
-        # Build schema for ALL optional properties (excluding active)
+        # Build schema for ALL optional properties (excluding active and icon - icon moved to step 2)
         schema_dict = {
             vol.Optional("model_version", default=self._extended_config.get("model_version", "")): str,
             vol.Optional("hardware_version", default=self._extended_config.get("hardware_version", "")): str,
@@ -601,7 +621,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             vol.Optional("device_class", default=self._extended_config.get("device_class", "")): str,
             vol.Optional("device_class_version", default=self._extended_config.get("device_class_version", "")): str,
             vol.Optional("ha_entity_id", default=self._extended_config.get("ha_entity_id", "")): str,
-            vol.Optional("icon", default=self._extended_config.get("icon", "")): str,
         }
         
         extended_schema = vol.Schema(schema_dict)
