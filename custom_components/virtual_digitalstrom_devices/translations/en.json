@@ -25,18 +25,16 @@
       },
       "device_config": {
         "title": "Create Virtual digitalSTROM Device - Step 2: Configuration",
-        "description": "Configure the basic properties of your virtual device. Click 'Extended Configuration' for additional optional settings.",
+        "description": "Configure the basic properties of your {category} device. All fields are required.",
         "data": {
           "name": "Device Name",
           "model": "Model",
-          "display_id": "Display ID",
-          "next_action": "Next Step"
+          "display_id": "Display ID"
         },
         "data_description": {
-          "name": "A user-friendly name for your device (e.g., 'Living Room Ceiling Light', 'Bedroom Blind').\n\nThis name will be used to identify the device in Home Assistant and digitalSTROM.",
-          "model": "The model name of your device (e.g., 'LED Dimmer', 'Smart Blind Controller').\n\nThis identifies the type or model of the physical or virtual device.",
-          "display_id": "A human-readable identifier that would be printed on a physical device (e.g., serial number, device label).\n\nThis can be left empty if not applicable for virtual devices.",
-          "next_action": "Choose what to do next:\n\n• ✓ Create Device (Finish) - Save the device with current settings\n• ⚙ Extended Configuration (Optional) - Configure additional properties like hardware IDs, vendor info, etc.\n• ← Back to Category Selection - Change the device category\n• ✗ Cancel Device Creation - Abort and don't create the device"
+          "name": "Enter a descriptive name for your device.\n\nExamples:\n• 'Living Room Ceiling Light'\n• 'Bedroom Blind'\n• 'Kitchen Coffee Maker'\n\nThis name will be used throughout Home Assistant and digitalSTROM.",
+          "model": "Specify the model name or type of your device.\n\nExamples:\n• 'LED Dimmer'\n• 'Smart Blind Controller'\n• 'Heating Thermostat'\n\nThis helps identify what kind of device this is.",
+          "display_id": "Enter a unique identifier for this device (like a serial number or label).\n\nExamples:\n• 'SN-12345'\n• 'DEVICE-001'\n• 'BLIND-LR-01'\n\nThis can be left empty for virtual devices if not needed."
         }
       },
       "extended_config": {
@@ -71,6 +69,16 @@
           "device_class_version": "The version of the device class profile specification.\n\nIndicates which version of the device class specification this device implements.",
           "ha_entity_id": "The Home Assistant entity ID to map this virtual device to (e.g., 'light.living_room').\n\nThis creates a connection between the virtualSTROM device and an existing Home Assistant entity.",
           "active": "Whether the device is operational and can function normally.\n\nWhen disabled, the device may still be visible but won't respond to commands."
+        }
+      },
+      "device_config_menu": {
+        "title": "What would you like to do next?",
+        "description": "Your device configuration has been saved. Choose an action below:",
+        "menu_options": {
+          "create_device": "✓ Create Device - Finish and add the device to Home Assistant",
+          "extended_config": "⚙ Advanced Configuration - Set optional properties (hardware IDs, vendor info, etc.)",
+          "back_to_category": "← Go Back - Return to edit basic configuration",
+          "cancel_creation": "✗ Cancel - Abort device creation"
         }
       }
     },

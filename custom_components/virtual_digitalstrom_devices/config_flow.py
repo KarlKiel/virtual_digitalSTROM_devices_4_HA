@@ -243,50 +243,46 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> FlowResult:
         """Handle device configuration step (required CONFIG properties)."""
         errors: dict[str, str] = {}
-        if user_input is not None:
-            # Check which action button was clicked
-            next_action = user_input.get("next_action")
-            
-            # Store the configuration data (excluding the action button)
-            config_data = {k: v for k, v in user_input.items() if k != "next_action"}
-            self._data.update(config_data)
-            
-            # Route based on user's button choice
-            if next_action == "create_device":
-                # User clicked "Create Device" - finish and create
-                return await self.async_step_create_device(None)
-            elif next_action == "show_extended_config":
-                # User clicked "Extended Configuration" - show optional fields
-                return await self.async_step_extended_config(None)
-            elif next_action == "go_back":
-                # User clicked "Back" - return to category selection
-                return await self.async_step_back_to_category(None)
-            elif next_action == "cancel":
-                # User clicked "Cancel" - abort device creation
-                return await self.async_step_cancel_creation(None)
         
-        # Build schema with required fields (same for all device types)
-        schema_dict = {
+        if user_input is not None:
+            # Store the configuration data
+            self._data.update(user_input)
+            
+            # Proceed to navigation menu
+            return await self.async_step_device_config_menu(None)
+        
+        # Get category for display
+        category = self._data.get("category", "")
+        category_name = _extract_category_name(category)
+        
+        # Build schema with only the 3 required fields
+        config_schema = vol.Schema({
             vol.Required("name", default=self._data.get("name", "")): str,
             vol.Required("model", default=self._data.get("model", "")): str,
             vol.Required("display_id", default=self._data.get("display_id", "")): str,
-        }
-        
-        
-        # Add navigation/action selector as the last field
-        schema_dict[vol.Required("next_action", default="create_device")] = vol.In({
-            "create_device": "✓ Create Device (Finish)",
-            "show_extended_config": "⚙ Extended Configuration (Optional)",
-            "go_back": "← Back to Category Selection",
-            "cancel": "✗ Cancel Device Creation",
         })
-        
-        config_schema = vol.Schema(schema_dict)
         
         return self.async_show_form(
             step_id="device_config",
             data_schema=config_schema,
             errors=errors,
+            description_placeholders={
+                "category": category_name,
+            },
+        )
+    
+    async def async_step_device_config_menu(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Show menu for what to do next after basic configuration."""
+        return self.async_show_menu(
+            step_id="device_config_menu",
+            menu_options=[
+                "create_device",
+                "extended_config",
+                "back_to_category",
+                "cancel_creation",
+            ],
         )
     
     async def async_step_create_device(
@@ -333,8 +329,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             # Store extended configuration
             self._extended_config.update(user_input)
             
-            # Return to main device config screen
-            return await self.async_step_device_config(None)
+            # Return to menu
+            return await self.async_step_device_config_menu(None)
 
         # Build schema for optional properties
         schema_dict = {
@@ -550,50 +546,46 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     ) -> FlowResult:
         """Handle device configuration step (required CONFIG properties)."""
         errors: dict[str, str] = {}
-        if user_input is not None:
-            # Check which action button was clicked
-            next_action = user_input.get("next_action")
-            
-            # Store the configuration data (excluding the action button)
-            config_data = {k: v for k, v in user_input.items() if k != "next_action"}
-            self._data.update(config_data)
-            
-            # Route based on user's button choice
-            if next_action == "create_device":
-                # User clicked "Create Device" - finish and create
-                return await self.async_step_create_device(None)
-            elif next_action == "show_extended_config":
-                # User clicked "Extended Configuration" - show optional fields
-                return await self.async_step_extended_config(None)
-            elif next_action == "go_back":
-                # User clicked "Back" - return to category selection
-                return await self.async_step_back_to_category(None)
-            elif next_action == "cancel":
-                # User clicked "Cancel" - abort device creation
-                return await self.async_step_cancel_creation(None)
         
-        # Build schema with required fields (same for all device types)
-        schema_dict = {
+        if user_input is not None:
+            # Store the configuration data
+            self._data.update(user_input)
+            
+            # Proceed to navigation menu
+            return await self.async_step_device_config_menu(None)
+        
+        # Get category for display
+        category = self._data.get("category", "")
+        category_name = _extract_category_name(category)
+        
+        # Build schema with only the 3 required fields
+        config_schema = vol.Schema({
             vol.Required("name", default=self._data.get("name", "")): str,
             vol.Required("model", default=self._data.get("model", "")): str,
             vol.Required("display_id", default=self._data.get("display_id", "")): str,
-        }
-        
-        
-        # Add navigation/action selector as the last field
-        schema_dict[vol.Required("next_action", default="create_device")] = vol.In({
-            "create_device": "✓ Create Device (Finish)",
-            "show_extended_config": "⚙ Extended Configuration (Optional)",
-            "go_back": "← Back to Category Selection",
-            "cancel": "✗ Cancel Device Creation",
         })
-        
-        config_schema = vol.Schema(schema_dict)
         
         return self.async_show_form(
             step_id="device_config",
             data_schema=config_schema,
             errors=errors,
+            description_placeholders={
+                "category": category_name,
+            },
+        )
+    
+    async def async_step_device_config_menu(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Show menu for what to do next after basic configuration."""
+        return self.async_show_menu(
+            step_id="device_config_menu",
+            menu_options=[
+                "create_device",
+                "extended_config",
+                "back_to_category",
+                "cancel_creation",
+            ],
         )
     
     async def async_step_create_device(
@@ -635,8 +627,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             # Store extended configuration
             self._extended_config.update(user_input)
             
-            # Return to main device config screen
-            return await self.async_step_device_config(None)
+            # Return to menu
+            return await self.async_step_device_config_menu(None)
 
         # Build schema for optional properties
         schema_dict = {
