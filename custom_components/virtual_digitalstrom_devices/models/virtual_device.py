@@ -95,6 +95,7 @@ class VirtualDevice:
     group_id: int = 0
     ha_entity_id: str = ""
     zone_id: int = 0
+    icon: str = ""  # Material Design Icon for HA display
     attributes: dict[str, Any] = field(default_factory=dict)
     
     # vDC Property Tree: configurations (Section 4.1.1)
