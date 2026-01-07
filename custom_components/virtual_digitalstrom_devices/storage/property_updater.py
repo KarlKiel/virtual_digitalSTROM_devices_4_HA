@@ -83,7 +83,8 @@ class ConfigPropertyUpdater:
             self._update_device_property(device, property_path, value, index)
             
             # Persist to YAML (CONFIG properties are ALWAYS persisted)
-            self.device_storage.save_device(device)
+            # Use executor to avoid blocking I/O
+            await self.hass.async_add_executor_job(self.device_storage.save_device, device)
             
             _LOGGER.info(
                 f"Updated CONFIG property {property_path} for device {device_id} to {value}"
@@ -117,8 +118,8 @@ class ConfigPropertyUpdater:
             for property_path, value in updates.items():
                 self._update_device_property(device, property_path, value)
             
-            # Single persistence operation
-            self.device_storage.save_device(device)
+            # Single persistence operation (use executor to avoid blocking I/O)
+            await self.hass.async_add_executor_job(self.device_storage.save_device, device)
             
             _LOGGER.info(
                 f"Updated {len(updates)} CONFIG properties for device {device_id}"
@@ -313,7 +314,8 @@ class StatePropertyUpdater:
             if should_persist:
                 # Store in device attributes for persistence
                 self._store_state_value(device, property_type, value, index)
-                self.device_storage.save_device(device)
+                # Use executor to avoid blocking I/O
+                await self.hass.async_add_executor_job(self.device_storage.save_device, device)
                 _LOGGER.debug(f"Persisted STATE property {property_type.value} for device {device_id}")
             
             _LOGGER.info(
@@ -367,9 +369,9 @@ class StatePropertyUpdater:
                     self._store_state_value(device, property_type, value, index)
                     any_persisted = True
             
-            # Single persistence operation if any updates need it
+            # Single persistence operation if any updates need it (use executor to avoid blocking I/O)
             if any_persisted:
-                self.device_storage.save_device(device)
+                await self.hass.async_add_executor_job(self.device_storage.save_device, device)
             
             _LOGGER.info(
                 f"Updated {len(updates)} STATE properties for device {device_id}"
