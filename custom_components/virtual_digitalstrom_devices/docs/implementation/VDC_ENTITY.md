@@ -194,11 +194,7 @@ Updatable properties include:
    - Initializes VdcManager during setup
    - Creates/updates vDC entity
    - Stores manager in integration data
-
-3. **Configuration Flow** (`config_flow.py`)
-   - Prompts for DSS port
-   - Validates input
-   - Stores configuration
+   - Reads DSS port from YAML configuration
 
 ### Usage in Code
 
