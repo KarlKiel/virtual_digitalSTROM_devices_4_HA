@@ -257,7 +257,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_device_config(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Handle Step 2: Required device properties (model, display_id, model_uid)."""
+        """Handle Step 2: Required device properties (model, display_id, model_uid) and icon."""
+        from homeassistant.helpers import selector
+        
         errors: dict[str, str] = {}
         
         if user_input is not None:
@@ -278,12 +280,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # Get default icon based on category
         default_icon = COLOR_TO_DEFAULT_ICON.get(category, "mdi:devices")
         
-        # Build schema with 3 required fields (model, display_id, model_uid) and icon
+        # Build schema with ICON FIRST (using HA's icon selector), then 3 required fields
         config_schema = vol.Schema({
+            vol.Optional("icon", default=self._data.get("icon", default_icon)): selector.IconSelector(),
             vol.Required("model", default=self._data.get("model", "")): str,
             vol.Required("display_id", default=self._data.get("display_id", "")): str,
             vol.Required("model_uid", default=self._data.get("model_uid", "")): str,
-            vol.Optional("icon", default=self._data.get("icon", default_icon)): str,
         })
         
         return self.async_show_form(
@@ -552,7 +554,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_device_config(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Handle Step 2: Required device properties (model, display_id, model_uid)."""
+        """Handle Step 2: Required device properties (model, display_id, model_uid) and icon."""
+        from homeassistant.helpers import selector
+        
         errors: dict[str, str] = {}
         
         if user_input is not None:
@@ -573,12 +577,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         # Get default icon based on category
         default_icon = COLOR_TO_DEFAULT_ICON.get(category, "mdi:devices")
         
-        # Build schema with 3 required fields (model, display_id, model_uid) and icon
+        # Build schema with ICON FIRST (using HA's icon selector), then 3 required fields
         config_schema = vol.Schema({
+            vol.Optional("icon", default=self._data.get("icon", default_icon)): selector.IconSelector(),
             vol.Required("model", default=self._data.get("model", "")): str,
             vol.Required("display_id", default=self._data.get("display_id", "")): str,
             vol.Required("model_uid", default=self._data.get("model_uid", "")): str,
-            vol.Optional("icon", default=self._data.get("icon", default_icon)): str,
         })
         
         return self.async_show_form(
