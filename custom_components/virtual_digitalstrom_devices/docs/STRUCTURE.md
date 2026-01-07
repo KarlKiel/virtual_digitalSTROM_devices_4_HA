@@ -7,12 +7,8 @@ This document describes the organization and structure of the Virtual digitalSTR
 ```
 custom_components/virtual_digitalstrom_devices/
 ├── __init__.py                 # Integration setup and entry point
-├── config_flow.py              # Configuration UI flow
 ├── const.py                    # Constants and configuration
 ├── manifest.json               # Integration metadata
-├── strings.json                # UI strings (master)
-├── translations/               # Localized UI strings
-│   └── en.json
 │
 ├── api/                        # vDC Protocol Implementation
 │   ├── __init__.py
@@ -50,8 +46,6 @@ custom_components/virtual_digitalstrom_devices/
     │   ├── PROPERTY_UPDATE_SYSTEM.md
     │   ├── VDC_ENTITY.md
     │   ├── VDC_MESSAGE_HANDLING.md
-    │   ├── DEVICE_CREATION_UI.md
-    │   ├── UI_MOCKUPS.md
     │   ├── IMPLEMENTATION_SUMMARY.md
     │   └── ...
     ├── examples/               # Example scripts
@@ -75,10 +69,8 @@ docs/external/                  # External Documentation (outside integration)
 ### Core Files
 
 - **`__init__.py`**: Integration setup, loads all components
-- **`config_flow.py`**: User interface for configuration
 - **`const.py`**: Constants, domain name, storage paths
 - **`manifest.json`**: Integration metadata for Home Assistant
-- **`strings.json`**: UI text and translations
 
 ### API Package (`api/`)
 
@@ -127,7 +119,6 @@ The integration stores its configuration data within the integration folder itse
 ```
 /config/custom_components/virtual_digitalstrom_devices/
 ├── __init__.py                                     # Integration code
-├── config_flow.py
 ├── ... (other integration files)
 │
 ├── virtual_digitalstrom_devices.yaml               # Device configurations

@@ -5,12 +5,14 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
+import voluptuous as vol
+
+from homeassistant.const import Platform, CONF_NAME
 from homeassistant.core import HomeAssistant
+import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers import device_registry as dr
 
-from .const import DOMAIN, STORAGE_FILE, STATE_LISTENER_MAPPINGS_FILE, VDC_CONFIG_FILE, CONF_DSS_PORT, DEFAULT_VENDOR
+from .const import DOMAIN, STORAGE_FILE, STATE_LISTENER_MAPPINGS_FILE, VDC_CONFIG_FILE, CONF_DSS_PORT, DEFAULT_DSS_PORT, DEFAULT_NAME, DEFAULT_VENDOR
 from .storage import DeviceStorage, PropertyUpdater, VdcManager
 from .storage.state_restorer import restore_states_on_startup
 from .listeners import StateListenerManager, DeviceListenerConfigurator
@@ -20,10 +22,27 @@ _LOGGER = logging.getLogger(__name__)
 # List of platforms to support
 PLATFORMS: list[Platform] = []
 
+# Configuration schema for YAML
+CONFIG_SCHEMA = vol.Schema(
+    {
+        DOMAIN: vol.Schema(
+            {
+                vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
+                vol.Optional(CONF_DSS_PORT, default=DEFAULT_DSS_PORT): cv.port,
+            }
+        )
+    },
+    extra=vol.ALLOW_EXTRA,
+)
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Virtual digitalSTROM Devices from a config entry."""
-    _LOGGER.debug("Setting up Virtual digitalSTROM Devices integration")
+
+async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
+    """Set up the Virtual digitalSTROM Devices integration from YAML configuration."""
+    if DOMAIN not in config:
+        return True
+    
+    conf = config[DOMAIN]
+    _LOGGER.debug("Setting up Virtual digitalSTROM Devices from YAML configuration")
     
     # Get the integration directory path
     integration_dir = Path(__file__).parent
@@ -36,8 +55,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Load vDC configuration in executor to avoid blocking I/O
     await hass.async_add_executor_job(vdc_manager.load)
     
-    # Get DSS port from config entry
-    dss_port = entry.data.get(CONF_DSS_PORT, 8440)
+    # Get DSS port from config
+    dss_port = conf.get(CONF_DSS_PORT, DEFAULT_DSS_PORT)
     
     # Create or update vDC entity with specified properties (use executor to avoid blocking I/O)
     vdc_config = await hass.async_add_executor_job(vdc_manager.create_or_update_vdc, dss_port)
@@ -95,9 +114,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     device_reg = dr.async_get(hass)
     for device in devices:
         try:
-            # Register each device directly under the integration config entry
+            # Register each device directly under the integration
             device_reg.async_get_or_create(
-                config_entry_id=entry.entry_id,
+                config_entry_id=None,
                 identifiers={(DOMAIN, device.dsid)},
                 name=device.name,
                 manufacturer=device.vendor_name or DEFAULT_VENDOR,
@@ -132,7 +151,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     
     # Store an instance of the integration data
     hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = {
+    hass.data[DOMAIN] = {
         "vdc_manager": vdc_manager,
         "vdc_dsuid": vdc_config["dsUID"],
         "device_storage": device_storage,
@@ -141,77 +160,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "property_updater": property_updater,
     }
     
-    # Forward the setup to the platforms
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    
     _LOGGER.info("Virtual digitalSTROM Devices integration setup complete")
     
     return True
 
-
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a config entry."""
-    _LOGGER.debug("Unloading Virtual digitalSTROM Devices integration")
-    
-    # Stop all state listeners
-    state_listener_manager = hass.data[DOMAIN][entry.entry_id].get("state_listener_manager")
-    if state_listener_manager:
-        await state_listener_manager.async_stop_all()
-        # Save listener mappings before unloading
-        await state_listener_manager.async_save_mappings()
-        _LOGGER.info("Saved listener mappings and stopped all listeners")
-    
-    # Unload platforms
-    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
-        hass.data[DOMAIN].pop(entry.entry_id)
-    
-    return unload_ok
-
-
-async def async_remove_config_entry_device(
-    hass: HomeAssistant, entry: ConfigEntry, device_entry: dr.DeviceEntry
-) -> bool:
-    """Remove a device from the integration.
-    
-    This is called when a user deletes a device from the UI via the device's 3-dot menu.
-    
-    Args:
-        hass: Home Assistant instance
-        entry: Config entry for this integration
-        device_entry: Device entry to remove
-        
-    Returns:
-        True if device was successfully removed from storage, False otherwise.
-        Note: The device is automatically removed from the device registry by Home Assistant.
-    """
-    _LOGGER.debug("Removing device: %s", device_entry.name)
-    
-    # Get the integration directory path
-    integration_dir = Path(__file__).parent
-    
-    # Initialize device storage
-    storage_path = integration_dir / STORAGE_FILE
-    device_storage = DeviceStorage(storage_path)
-    
-    # Load device storage in executor to avoid blocking I/O
-    await hass.async_add_executor_job(device_storage.load)
-    
-    # Find the device by its identifier (dsid) using the DOMAIN
-    dsid = next(
-        (identifier[1] for identifier in device_entry.identifiers if identifier[0] == DOMAIN),
-        None
-    )
-    
-    if dsid is None:
-        _LOGGER.error("Could not find device identifier for %s", device_entry.name)
-        return False
-    
-    _LOGGER.debug("Found device dsid: %s", dsid)
-    
-    # Remove device from storage by dsid (use executor to avoid blocking I/O during save)
-    if await hass.async_add_executor_job(device_storage.delete_device_by_dsid, dsid):
-        _LOGGER.info("Successfully removed device %s (dsid: %s) from storage", device_entry.name, dsid)
-        return True
-    
-    _LOGGER.error("Failed to remove device %s (dsid: %s) from storage", device_entry.name, dsid)
-    return False

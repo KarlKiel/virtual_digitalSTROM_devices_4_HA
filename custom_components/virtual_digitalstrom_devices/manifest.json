@@ -2,7 +2,7 @@
   "domain": "virtual_digitalstrom_devices",
   "name": "Virtual digitalSTROM Devices",
   "codeowners": ["@KarlKiel"],
-  "config_flow": true,
+  "config_flow": false,
   "dependencies": [],
   "documentation": "https://github.com/KarlKiel/virtual_digitalSTROM_devices_4_HA",
   "integration_type": "device",

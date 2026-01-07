@@ -17,20 +17,26 @@ This integration will be available through HACS in the future.
 
 ## Configuration
 
-1. In Home Assistant, go to **Settings** → **Devices & Services**
-2. Click the **+ Add Integration** button
-3. Search for "Virtual digitalSTROM Devices"
-4. Follow the configuration steps to set up the integration (configure the vDC server port)
-5. Once set up, click **Configure** on the integration to add virtual devices
+Add the following to your Home Assistant `configuration.yaml` file:
 
-The integration manages virtual digitalSTROM devices directly under the integration entry.
+```yaml
+virtual_digitalstrom_devices:
+  name: "Virtual digitalSTROM Devices"  # Optional, defaults to "Virtual digitalSTROM Devices"
+  dss_port: 8440  # Optional, defaults to 8440
+```
+
+After adding the configuration:
+1. Restart Home Assistant
+2. The integration will automatically set up the vDC server
+3. Virtual devices can be managed through the integration's YAML storage file
+
+The integration manages virtual digitalSTROM devices directly through YAML storage files.
 
 ## Features
 
-- **User-friendly device creation** via configuration UI with category selection
+- **YAML-based configuration** for integration setup
 - Create virtual digitalSTROM devices based on Home Assistant entities
 - Manage digitalSTROM vDSDs
-- Integration with Home Assistant's configuration UI
 - **Automatic state persistence and restoration across restarts**
   - Critical device states (heating/cooling levels, channel values, sensor readings) are saved to YAML
   - States automatically restored on Home Assistant startup
@@ -64,12 +70,8 @@ This integration is under active development. Contributions are welcome!
 ```
 custom_components/virtual_digitalstrom_devices/
 ├── __init__.py              # Integration setup and entry point
-├── config_flow.py           # Configuration UI flow
 ├── const.py                 # Constants and configuration
 ├── manifest.json            # Integration metadata
-├── strings.json             # UI strings
-├── translations/            # Localized UI strings
-│   └── en.json
 ├── api/                     # vDC Protocol Implementation
 │   ├── message_builder.py
 │   ├── message_handler.py
