@@ -14,35 +14,36 @@
         }
       },
       "device_category": {
-        "title": "Create Virtual digitalSTROM Device - Step 1: Category",
-        "description": "Select the category for your new virtual device. Each category represents a different type of digitalSTROM device with specific functions and capabilities.",
+        "title": "Create Virtual digitalSTROM Device - Step 1 of 3",
+        "description": "Enter the device name and select its category. This determines the device's functional group in digitalSTROM.",
         "data": {
+          "name": "Device Name",
           "category": "Device Category"
         },
         "data_description": {
-          "category": "Choose the color group that best matches your device type:\n\n• Yellow (Lights) - All lighting devices\n• Gray (Blinds) - Shading and blind control\n• Blue (Climate) - Heating, cooling, ventilation, windows\n• Cyan (Audio) - Audio playback devices\n• Magenta (Video) - TV and video devices\n• Red (Security) - Alarms, fire, panic systems\n• Green (Access) - Doors, doorbells, access control\n• White (Single Devices) - Individual appliances like fridges and coffee makers\n• Black (Joker) - Configurable/customizable devices"
+          "name": "Enter a descriptive name for your device.\n\nExamples:\n• 'Living Room Ceiling Light'\n• 'Bedroom Blind'\n• 'Kitchen Coffee Maker'\n\nThis name will be used throughout Home Assistant and digitalSTROM.",
+          "category": "Choose the color group that best matches your device type:\n\n• Yellow (Lights) - All lighting devices\n• Gray (Blinds) - Shading and blind control\n• Blue (Climate) - Heating, cooling, ventilation, windows\n• Cyan (Audio) - Audio playback devices\n• Magenta (Video) - TV and video devices\n• Red (Security) - Alarms, fire, panic systems\n• Green (Access) - Doors, doorbells, access control\n• White (Single Devices) - Individual appliances\n• Black (Joker) - Configurable/customizable devices"
         }
       },
       "device_config": {
-        "title": "Create Virtual digitalSTROM Device - Step 2: Configuration",
-        "description": "Configure the basic properties of your {category} device. All fields are required.",
+        "title": "Create Virtual digitalSTROM Device - Step 2 of 3",
+        "description": "Configure required properties for '{name}' ({category}). All fields are mandatory.",
         "data": {
-          "name": "Device Name",
           "model": "Model",
-          "display_id": "Display ID"
+          "display_id": "Display ID",
+          "model_uid": "Model UID"
         },
         "data_description": {
-          "name": "Enter a descriptive name for your device.\n\nExamples:\n• 'Living Room Ceiling Light'\n• 'Bedroom Blind'\n• 'Kitchen Coffee Maker'\n\nThis name will be used throughout Home Assistant and digitalSTROM.",
           "model": "Specify the model name or type of your device.\n\nExamples:\n• 'LED Dimmer'\n• 'Smart Blind Controller'\n• 'Heating Thermostat'\n\nThis helps identify what kind of device this is.",
-          "display_id": "Enter a unique identifier for this device (like a serial number or label).\n\nExamples:\n• 'SN-12345'\n• 'DEVICE-001'\n• 'BLIND-LR-01'\n\nThis can be left empty for virtual devices if not needed."
+          "display_id": "Enter a unique identifier for this device (like a serial number or label).\n\nExamples:\n• 'SN-12345'\n• 'DEVICE-001'\n• 'BLIND-LR-01'\n\nThis can be used to distinguish devices with the same model.",
+          "model_uid": "A unique identifier for this functional model in the digitalSTROM system.\n\nExamples:\n• 'com.example.dimmer.v1'\n• 'VD-LIGHT-001'\n• 'model-12345678'\n\nThis is required by the vDC API and helps identify devices with the same functional behavior."
         }
       },
-      "extended_config": {
-        "title": "Extended Configuration (Optional)",
-        "description": "Configure additional optional properties for your device. All fields are optional and can be left empty.",
+      "optional_settings": {
+        "title": "Create Virtual digitalSTROM Device - Step 3 of 3: Optional Expert Settings",
+        "description": "Configure additional optional properties for '{name}'. All fields are optional and can be left empty. These are advanced settings for expert users.",
         "data": {
           "model_version": "Model Version",
-          "model_uid": "Model UID",
           "hardware_version": "Hardware Version",
           "hardware_guid": "Hardware GUID",
           "hardware_model_guid": "Hardware Model GUID",
@@ -53,11 +54,10 @@
           "device_class": "Device Class",
           "device_class_version": "Device Class Version",
           "ha_entity_id": "Home Assistant Entity ID",
-          "active": "Active"
+          "icon": "Icon"
         },
         "data_description": {
           "model_version": "The firmware or software version of the device model (e.g., '1.0.0', 'v2.3').\n\nThis helps track device capabilities and compatibility.",
-          "model_uid": "A unique identifier for this functional model in the digitalSTROM system.\n\nThis is used to identify devices with the same functional behavior.",
           "hardware_version": "The hardware revision or version string (e.g., 'Rev A', '1.2').\n\nUseful for tracking physical device versions.",
           "hardware_guid": "Hardware GUID in URN format (e.g., 'gs1:01:12345', 'uuid:...', 'macaddress:...').\n\nThis uniquely identifies the hardware and is used for dSUID generation if provided.",
           "hardware_model_guid": "Hardware model GUID identifying the specific hardware model.\n\nUsed to group devices with the same hardware design.",
@@ -68,7 +68,7 @@
           "device_class": "The digitalSTROM device class profile name.\n\nDefaults to the selected category (color group) if not specified.",
           "device_class_version": "The version of the device class profile specification.\n\nIndicates which version of the device class specification this device implements.",
           "ha_entity_id": "The Home Assistant entity ID to map this virtual device to (e.g., 'light.living_room').\n\nThis creates a connection between the virtualSTROM device and an existing Home Assistant entity.",
-          "active": "Whether the device is operational and can function normally.\n\nWhen disabled, the device may still be visible but won't respond to commands."
+          "icon": "Icon identifier for the device (e.g., 'mdi:lightbulb', 'mdi:blinds').\n\nYou can use any Home Assistant Material Design Icon. A default icon will be chosen based on the device category if not specified."
         }
       },
       "device_config_menu": {

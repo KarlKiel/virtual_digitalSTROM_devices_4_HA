@@ -14,35 +14,36 @@
         }
       },
       "device_category": {
-        "title": "Virtuelles digitalSTROM-Gerät erstellen - Schritt 1: Kategorie",
-        "description": "Wählen Sie die Kategorie für Ihr neues virtuelles Gerät. Jede Kategorie repräsentiert einen anderen Typ von digitalSTROM-Gerät mit spezifischen Funktionen und Fähigkeiten.",
+        "title": "Virtuelles digitalSTROM-Gerät erstellen - Schritt 1 von 3",
+        "description": "Geben Sie den Gerätenamen ein und wählen Sie die Kategorie. Dies bestimmt die funktionale Gruppe des Geräts in digitalSTROM.",
         "data": {
+          "name": "Gerätename",
           "category": "Gerätekategorie"
         },
         "data_description": {
-          "category": "Wählen Sie die Farbgruppe, die am besten zu Ihrem Gerätetyp passt:\n\n• Gelb (Licht) - Alle Beleuchtungsgeräte\n• Grau (Beschattung) - Jalousien und Rolläden\n• Blau (Klima) - Heizung, Kühlung, Lüftung, Fenster\n• Cyan (Audio) - Audio-Wiedergabegeräte\n• Magenta (Video) - TV und Video-Geräte\n• Rot (Sicherheit) - Alarme, Feuer, Paniksysteme\n• Grün (Zugang) - Türen, Türklingeln, Zugangskontrolle\n• Weiß (Einzelgeräte) - Einzelne Geräte wie Kühlschränke und Kaffeemaschinen\n• Schwarz (Joker) - Konfigurierbare/anpassbare Geräte"
+          "name": "Geben Sie einen beschreibenden Namen für Ihr Gerät ein.\n\nBeispiele:\n• 'Wohnzimmer Deckenleuchte'\n• 'Schlafzimmer Rollo'\n• 'Küche Kaffeemaschine'\n\nDieser Name wird in Home Assistant und digitalSTROM verwendet.",
+          "category": "Wählen Sie die Farbgruppe, die am besten zu Ihrem Gerätetyp passt:\n\n• Gelb (Licht) - Alle Beleuchtungsgeräte\n• Grau (Beschattung) - Jalousien und Rolläden\n• Blau (Klima) - Heizung, Kühlung, Lüftung, Fenster\n• Cyan (Audio) - Audio-Wiedergabegeräte\n• Magenta (Video) - TV und Video-Geräte\n• Rot (Sicherheit) - Alarme, Feuer, Paniksysteme\n• Grün (Zugang) - Türen, Türklingeln, Zugangskontrolle\n• Weiß (Einzelgeräte) - Einzelne Geräte\n• Schwarz (Joker) - Konfigurierbare Geräte"
         }
       },
       "device_config": {
-        "title": "Virtuelles digitalSTROM-Gerät erstellen - Schritt 2: Konfiguration",
-        "description": "Konfigurieren Sie die grundlegenden Eigenschaften Ihres {category}-Geräts. Alle Felder sind erforderlich.",
+        "title": "Virtuelles digitalSTROM-Gerät erstellen - Schritt 2 von 3",
+        "description": "Konfigurieren Sie die erforderlichen Eigenschaften für '{name}' ({category}). Alle Felder sind Pflichtfelder.",
         "data": {
-          "name": "Gerätename",
           "model": "Modell",
-          "display_id": "Anzeige-ID"
+          "display_id": "Anzeige-ID",
+          "model_uid": "Modell-UID"
         },
         "data_description": {
-          "name": "Geben Sie einen beschreibenden Namen für Ihr Gerät ein.\n\nBeispiele:\n• 'Wohnzimmer Deckenleuchte'\n• 'Schlafzimmer Rollo'\n• 'Küche Kaffeemaschine'\n\nDieser Name wird in Home Assistant und digitalSTROM verwendet.",
           "model": "Geben Sie den Modellnamen oder Typ Ihres Geräts an.\n\nBeispiele:\n• 'LED Dimmer'\n• 'Smart Rollo Steuerung'\n• 'Heizungsthermostat'\n\nDies hilft zu identifizieren, um welche Art von Gerät es sich handelt.",
-          "display_id": "Geben Sie eine eindeutige Kennung für dieses Gerät ein (wie eine Seriennummer oder Bezeichnung).\n\nBeispiele:\n• 'SN-12345'\n• 'GERÄT-001'\n• 'ROLLO-WZ-01'\n\nDies kann für virtuelle Geräte leer gelassen werden, falls nicht benötigt."
+          "display_id": "Geben Sie eine eindeutige Kennung für dieses Gerät ein (wie eine Seriennummer oder Bezeichnung).\n\nBeispiele:\n• 'SN-12345'\n• 'GERÄT-001'\n• 'ROLLO-WZ-01'\n\nDies kann verwendet werden, um Geräte mit dem gleichen Modell zu unterscheiden.",
+          "model_uid": "Eine eindeutige Kennung für dieses funktionale Modell im digitalSTROM-System.\n\nBeispiele:\n• 'com.beispiel.dimmer.v1'\n• 'VD-LIGHT-001'\n• 'model-12345678'\n\nDies ist erforderlich durch die vDC API und hilft, Geräte mit dem gleichen funktionalen Verhalten zu identifizieren."
         }
       },
-      "extended_config": {
-        "title": "Erweiterte Konfiguration (Optional)",
-        "description": "Konfigurieren Sie zusätzliche optionale Eigenschaften für Ihr Gerät. Alle Felder sind optional und können leer gelassen werden.",
+      "optional_settings": {
+        "title": "Virtuelles digitalSTROM-Gerät erstellen - Schritt 3 von 3: Optionale Experteneinstellungen",
+        "description": "Konfigurieren Sie zusätzliche optionale Eigenschaften für '{name}'. Alle Felder sind optional und können leer gelassen werden. Dies sind erweiterte Einstellungen für Experten.",
         "data": {
           "model_version": "Modellversion",
-          "model_uid": "Modell-UID",
           "hardware_version": "Hardware-Version",
           "hardware_guid": "Hardware-GUID",
           "hardware_model_guid": "Hardware-Modell-GUID",
@@ -53,11 +54,10 @@
           "device_class": "Geräteklasse",
           "device_class_version": "Geräteklassen-Version",
           "ha_entity_id": "Home Assistant Entity ID",
-          "active": "Aktiv"
+          "icon": "Symbol"
         },
         "data_description": {
           "model_version": "Die Firmware- oder Softwareversion des Gerätemodells (z.B. '1.0.0', 'v2.3').\n\nDies hilft, Gerätefähigkeiten und Kompatibilität zu verfolgen.",
-          "model_uid": "Eine eindeutige Kennung für dieses funktionale Modell im digitalSTROM-System.\n\nDies wird verwendet, um Geräte mit dem gleichen funktionalen Verhalten zu identifizieren.",
           "hardware_version": "Die Hardware-Revision oder Versionszeichenfolge (z.B. 'Rev A', '1.2').\n\nNützlich zur Verfolgung physischer Geräteversionen.",
           "hardware_guid": "Hardware-GUID im URN-Format (z.B. 'gs1:01:12345', 'uuid:...', 'macaddress:...').\n\nDies identifiziert die Hardware eindeutig und wird bei Angabe für die dSUID-Generierung verwendet.",
           "hardware_model_guid": "Hardware-Modell-GUID zur Identifizierung des spezifischen Hardware-Modells.\n\nWird verwendet, um Geräte mit dem gleichen Hardware-Design zu gruppieren.",
@@ -68,7 +68,7 @@
           "device_class": "Der digitalSTROM-Geräteklassen-Profilname.\n\nStandardmäßig die ausgewählte Kategorie (Farbgruppe), wenn nicht angegeben.",
           "device_class_version": "Die Version der Geräteklassen-Profilspezifikation.\n\nZeigt an, welche Version der Geräteklassenspezifikation dieses Gerät implementiert.",
           "ha_entity_id": "Die Home Assistant Entity ID, um dieses virtuelle Gerät zuzuordnen (z.B. 'light.wohnzimmer').\n\nDies erstellt eine Verbindung zwischen dem virtualSTROM-Gerät und einer vorhandenen Home Assistant-Entität.",
-          "active": "Ob das Gerät betriebsbereit ist und normal funktionieren kann.\n\nWenn deaktiviert, kann das Gerät weiterhin sichtbar sein, reagiert aber nicht auf Befehle."
+          "icon": "Symbol-Kennung für das Gerät (z.B. 'mdi:lightbulb', 'mdi:blinds').\n\nSie können jedes Home Assistant Material Design Icon verwenden. Ein Standardsymbol wird basierend auf der Gerätekategorie gewählt, wenn nicht angegeben."
         }
       },
       "device_config_menu": {

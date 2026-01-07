@@ -216,50 +216,57 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_device_category(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Handle the device category selection step."""
+        """Handle Step 1: Device name and category selection."""
         errors: dict[str, str] = {}
         
         if user_input is not None:
-            # Store the selected category
-            category_value = user_input["category"]
-            self._data = {"category": category_value}
+            # Store the name and category
+            self._data = {
+                "name": user_input["name"],
+                "category": user_input["category"]
+            }
             
-            # Proceed to device configuration screen
+            # Proceed to device properties screen (Step 2)
             return await self.async_step_device_config(None)
 
-        # Create schema for category selection
-        category_schema = vol.Schema({
+        # Create schema with name first, then category
+        schema = vol.Schema({
+            vol.Required("name", default=self._data.get("name", "")): str,
             vol.Required("category"): vol.In(COLOR_GROUP_OPTIONS),
         })
 
         return self.async_show_form(
             step_id="device_category",
-            data_schema=category_schema,
+            data_schema=schema,
             errors=errors,
         )
     
     async def async_step_device_config(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Handle device configuration step (required CONFIG properties)."""
+        """Handle Step 2: Required device properties (model, display_id, model_uid)."""
         errors: dict[str, str] = {}
         
         if user_input is not None:
+            # Check if user wants to go back
+            if user_input.get("_back"):
+                return await self.async_step_device_category(None)
+            
             # Store the configuration data
             self._data.update(user_input)
             
-            # Proceed to navigation menu
-            return await self.async_step_device_config_menu(None)
+            # Proceed to optional settings (Step 3)
+            return await self.async_step_optional_settings(None)
         
         # Get category for display
         category = self._data.get("category", "")
         category_name = _extract_category_name(category)
         
-        # Build schema with only the 3 required fields
+        # Build schema with 3 required fields (model, display_id, model_uid)
         config_schema = vol.Schema({
-            vol.Required("name", default=self._data.get("name", "")): str,
             vol.Required("model", default=self._data.get("model", "")): str,
             vol.Required("display_id", default=self._data.get("display_id", "")): str,
+            vol.Required("model_uid", default=self._data.get("model_uid", "")): str,
         })
         
         return self.async_show_form(
@@ -268,21 +275,53 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
             description_placeholders={
                 "category": category_name,
+                "name": self._data.get("name", ""),
             },
         )
-    
-    async def async_step_device_config_menu(
+     
+    async def async_step_optional_settings(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Show menu for what to do next after basic configuration."""
-        return self.async_show_menu(
-            step_id="device_config_menu",
-            menu_options=[
-                "create_device",
-                "extended_config",
-                "back_to_category",
-                "cancel_creation",
-            ],
+        """Handle Step 3: Optional expert settings (all optional CONFIG properties)."""
+        errors: dict[str, str] = {}
+        
+        if user_input is not None:
+            # Check if user wants to go back
+            if user_input.get("_back"):
+                return await self.async_step_device_config(None)
+            
+            # Store optional configuration
+            self._extended_config.update(user_input)
+            
+            # Proceed to create device
+            return await self.async_step_create_device(None)
+
+        # Build schema for ALL optional properties (excluding active)
+        schema_dict = {
+            vol.Optional("model_version", default=self._extended_config.get("model_version", "")): str,
+            vol.Optional("hardware_version", default=self._extended_config.get("hardware_version", "")): str,
+            vol.Optional("hardware_guid", default=self._extended_config.get("hardware_guid", "")): str,
+            vol.Optional("hardware_model_guid", default=self._extended_config.get("hardware_model_guid", "")): str,
+            vol.Optional("vendor_name", default=self._extended_config.get("vendor_name", "")): str,
+            vol.Optional("vendor_guid", default=self._extended_config.get("vendor_guid", "")): str,
+            vol.Optional("oem_guid", default=self._extended_config.get("oem_guid", "")): str,
+            vol.Optional("oem_model_guid", default=self._extended_config.get("oem_model_guid", "")): str,
+            vol.Optional("device_class", default=self._extended_config.get("device_class", "")): str,
+            vol.Optional("device_class_version", default=self._extended_config.get("device_class_version", "")): str,
+            vol.Optional("ha_entity_id", default=self._extended_config.get("ha_entity_id", "")): str,
+            vol.Optional("icon", default=self._extended_config.get("icon", "")): str,
+        }
+        
+        extended_schema = vol.Schema(schema_dict)
+        
+        return self.async_show_form(
+            step_id="optional_settings",
+            data_schema=extended_schema,
+            errors=errors,
+            description_placeholders={
+                "name": self._data.get("name", ""),
+                "category": _extract_category_name(self._data.get("category", "")),
+            },
         )
     
     async def async_step_create_device(
@@ -305,62 +344,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # If creation failed, go back to config
         return await self.async_step_device_config(None)
     
-    async def async_step_back_to_category(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Go back to category selection."""
-        # Clear stored data except extended config
-        self._data = {}
-        return await self.async_step_device_category(None)
-    
     async def async_step_cancel_creation(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Cancel device creation."""
         return self.async_abort(reason="user_cancelled")
-    
-    async def async_step_extended_config(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Handle extended configuration popup (optional CONFIG properties)."""
-        errors: dict[str, str] = {}
-        
-        if user_input is not None:
-            # Store extended configuration
-            self._extended_config.update(user_input)
-            
-            # Return to menu
-            return await self.async_step_device_config_menu(None)
-
-        # Build schema for optional properties
-        schema_dict = {
-            vol.Optional("model_version", default=self._extended_config.get("model_version", "")): str,
-            vol.Optional("model_uid", default=self._extended_config.get("model_uid", "")): str,
-            vol.Optional("hardware_version", default=self._extended_config.get("hardware_version", "")): str,
-            vol.Optional("hardware_guid", default=self._extended_config.get("hardware_guid", "")): str,
-            vol.Optional("hardware_model_guid", default=self._extended_config.get("hardware_model_guid", "")): str,
-            vol.Optional("vendor_name", default=self._extended_config.get("vendor_name", "")): str,
-            vol.Optional("vendor_guid", default=self._extended_config.get("vendor_guid", "")): str,
-            vol.Optional("oem_guid", default=self._extended_config.get("oem_guid", "")): str,
-            vol.Optional("oem_model_guid", default=self._extended_config.get("oem_model_guid", "")): str,
-            vol.Optional("device_class", default=self._extended_config.get("device_class", "")): str,
-            vol.Optional("device_class_version", default=self._extended_config.get("device_class_version", "")): str,
-            vol.Optional("ha_entity_id", default=self._extended_config.get("ha_entity_id", "")): str,
-        }
-        
-        # Add active as boolean selector
-        if "active" in self._extended_config:
-            schema_dict[vol.Optional("active", default=self._extended_config["active"])] = bool
-        else:
-            schema_dict[vol.Optional("active")] = bool
-        
-        extended_schema = vol.Schema(schema_dict)
-        
-        return self.async_show_form(
-            step_id="extended_config",
-            data_schema=extended_schema,
-            errors=errors,
-        )
     
     async def _create_configured_device(self, config_entry_id: str) -> bool:
         """Create device with all collected configuration data.
@@ -414,8 +402,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             oem_guid=all_config.get("oem_guid", ""),
             oem_model_guid=all_config.get("oem_model_guid", ""),
             device_class_version=all_config.get("device_class_version", ""),
-            active=all_config.get("active", None),
+            active=True,  # Always active by default (synced with HA device state)
             ha_entity_id=all_config.get("ha_entity_id", ""),
+            icon=all_config.get("icon", ""),  # Icon selection support
         )
         
         # Add to storage
@@ -709,7 +698,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             oem_guid=all_config.get("oem_guid", ""),
             oem_model_guid=all_config.get("oem_model_guid", ""),
             device_class_version=all_config.get("device_class_version", ""),
-            active=all_config.get("active", None),
+            active=True,  # Always active by default (synced with HA device state)
             ha_entity_id=all_config.get("ha_entity_id", ""),
         )
         
