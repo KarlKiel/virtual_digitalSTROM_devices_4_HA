@@ -193,6 +193,9 @@ async def async_remove_config_entry_device(
     storage_path = integration_dir / STORAGE_FILE
     device_storage = DeviceStorage(storage_path)
     
+    # Load device storage in executor to avoid blocking I/O
+    await hass.async_add_executor_job(device_storage.load)
+    
     # Find the device by its identifier (dsid) using the DOMAIN
     dsid = next(
         (identifier[1] for identifier in device_entry.identifiers if identifier[0] == DOMAIN),
@@ -205,8 +208,8 @@ async def async_remove_config_entry_device(
     
     _LOGGER.debug("Found device dsid: %s", dsid)
     
-    # Remove device from storage by dsid
-    if device_storage.delete_device_by_dsid(dsid):
+    # Remove device from storage by dsid (use executor to avoid blocking I/O during save)
+    if await hass.async_add_executor_job(device_storage.delete_device_by_dsid, dsid):
         _LOGGER.info("Successfully removed device %s (dsid: %s) from storage", device_entry.name, dsid)
         return True
     

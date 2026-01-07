@@ -375,7 +375,10 @@ class VdcMessageDispatcher:
         
         device = self._find_device_by_dsuid(dsuid)
         if device:
-            self.device_storage.delete_device(device.device_id)
+            # Use executor to avoid blocking I/O during save
+            await self.hass.async_add_executor_job(
+                self.device_storage.delete_device, device.device_id
+            )
             _LOGGER.info(f"Device {dsuid} removed")
         else:
             _LOGGER.warning(f"Device not found for removal: {dsuid}")
@@ -580,8 +583,8 @@ class VdcMessageDispatcher:
         
         device.attributes["scenes"][str(scene)] = dict(state_values)
         
-        # Persist
-        self.device_storage.save_device(device)
+        # Persist (use executor to avoid blocking I/O)
+        await self.hass.async_add_executor_job(self.device_storage.save_device, device)
     
     async def _set_output_channel_value(
         self,
@@ -662,7 +665,8 @@ class VdcMessageDispatcher:
             "active": mode != 0,
         }
         
-        self.device_storage.save_device(device)
+        # Use executor to avoid blocking I/O
+        await self.hass.async_add_executor_job(self.device_storage.save_device, device)
     
     async def _set_control_value(
         self,

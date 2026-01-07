@@ -304,8 +304,12 @@ class StateListenerManager:
             return
         
         try:
-            with open(self.mapping_file, "r") as f:
-                data = yaml.safe_load(f) or {}
+            # Load YAML file in executor to avoid blocking I/O
+            def _load_yaml():
+                with open(self.mapping_file, "r") as f:
+                    return yaml.safe_load(f) or {}
+            
+            data = await self.hass.async_add_executor_job(_load_yaml)
             
             mappings = data.get("listener_mappings", [])
             _LOGGER.info("Loading %d listener mappings from %s", len(mappings), self.mapping_file)
@@ -359,9 +363,6 @@ class StateListenerManager:
             return
         
         try:
-            # Ensure directory exists
-            self.mapping_file.parent.mkdir(parents=True, exist_ok=True)
-            
             # Convert mappings to list
             mappings_list = [
                 mapping.to_dict()
@@ -372,8 +373,15 @@ class StateListenerManager:
                 "listener_mappings": mappings_list,
             }
             
-            with open(self.mapping_file, "w") as f:
-                yaml.dump(data, f, default_flow_style=False, sort_keys=False)
+            # Save YAML file in executor to avoid blocking I/O
+            def _save_yaml():
+                # Ensure directory exists
+                self.mapping_file.parent.mkdir(parents=True, exist_ok=True)
+                
+                with open(self.mapping_file, "w") as f:
+                    yaml.dump(data, f, default_flow_style=False, sort_keys=False)
+            
+            await self.hass.async_add_executor_job(_save_yaml)
             
             _LOGGER.info(
                 "Saved %d listener mappings to %s",
