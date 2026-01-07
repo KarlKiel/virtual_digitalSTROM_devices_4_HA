@@ -2,6 +2,16 @@
 
 This guide explains how to use the `vdc_properties.py` Python module to create and manage virtual digitalSTROM devices (vdSD).
 
+## ⚠️ Important: Property Tree Structure
+
+**Note on `configurations` property**: As per vDC-API-properties specification (Sections 4.1.2-4.1.4), the `configurations` property is **not** a simple list of strings, but a **property tree** structure. Each configuration is a property element that contains nested structures for:
+
+- **Inputs** (Section 4.1.2): Button inputs, binary inputs, and sensors available in this configuration
+- **Outputs & Channels** (Section 4.1.3): Output and channel definitions for this configuration
+- **Scenes** (Section 4.1.4): Scene configurations available in this configuration
+
+For the complete property tree implementation, see `custom_components/../models/property_tree.py`.
+
 ## Overview
 
 The `vdc_properties.py` module provides Python classes that represent all vDC device properties as defined in the vDC-API-properties specification (July 2022). These classes allow you to:
@@ -23,7 +33,7 @@ device_props = DeviceProperties(
     primary_group=1,  # Light group
     zone_id=0,
     model_features={"dimmable": True},
-    configurations=["default"],
+    configurations={"default": {"id": "default", "description": "Default configuration"}},
 )
 
 # 2. Create the virtual device
@@ -96,7 +106,7 @@ props = DeviceProperties(
     primary_group=2,  # Climate group
     zone_id=1,
     model_features={"temperature_sensor": True},
-    configurations=["default"],
+    configurations={"default": {"id": "default", "description": "Default configuration"}},
 )
 
 # Create virtual device
@@ -131,7 +141,7 @@ props = DeviceProperties(
     primary_group=0,  # Generic
     zone_id=1,
     model_features={"two_way_button": True},
-    configurations=["default"],
+    configurations={"default": {"id": "default", "description": "Default configuration"}},
 )
 
 device = VirtualDevice(
@@ -189,7 +199,7 @@ props = DeviceProperties(
     primary_group=1,  # Light
     zone_id=1,
     model_features={"dimmable": True, "color": True},
-    configurations=["default"],
+    configurations={"default": {"id": "default", "description": "Default configuration"}},
 )
 
 device = VirtualDevice(
@@ -279,7 +289,7 @@ props = DeviceProperties(
     primary_group=0,  # Generic
     zone_id=1,
     model_features={"window_contact": True},
-    configurations=["default"],
+    configurations={"default": {"id": "default", "description": "Default configuration"}},
 )
 
 device = VirtualDevice(
@@ -325,7 +335,7 @@ props = DeviceProperties(
     primary_group=2,  # Climate
     zone_id=1,
     model_features={"heating": True, "temperature_sensor": True},
-    configurations=["default"],
+    configurations={"default": {"id": "default", "description": "Default configuration"}},
 )
 
 device = VirtualDevice(
@@ -507,7 +517,7 @@ def create_ha_light_device(entity_id: str, name: str, brightness: float = 0.0):
         primary_group=1,
         zone_id=0,
         model_features={"dimmable": True, "ha_entity": True},
-        configurations=["default"],
+        configurations={"default": {"id": "default", "description": "Default configuration"}},
     )
     
     device = VirtualDevice(

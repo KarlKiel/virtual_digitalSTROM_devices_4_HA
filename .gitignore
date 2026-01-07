@@ -139,3 +139,7 @@ example_devices.yaml
 custom_components/virtual_digitalstrom_devices/virtual_digitalstrom_devices.yaml
 custom_components/virtual_digitalstrom_devices/virtual_digitalstrom_listener_mappings.yaml
 custom_components/virtual_digitalstrom_devices/virtual_digitalstrom_vdc_config.yaml
+
+# Backup files
+*.bak
+*.backup

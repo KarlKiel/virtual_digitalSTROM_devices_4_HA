@@ -13,9 +13,17 @@ Based on genericVDC.proto specification.
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional, Union
+from typing import Any, List, Optional, Union
 
 from . import genericVDC_pb2 as pb
+
+# Import our PropertyElement model
+try:
+    from ..models.property_element import PropertyElement as PropertyElementModel
+    from ..models.property_element import PropertyValue as PropertyValueModel
+except ImportError:
+    PropertyElementModel = None  # type: ignore
+    PropertyValueModel = None  # type: ignore
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -334,6 +342,110 @@ class MessageBuilder:
             _LOGGER.warning(f"Unknown value type {type(value)}, converting to string")
         
         return prop_value
+    
+    def property_element_model_to_protobuf(
+        self,
+        element: 'PropertyElementModel',
+    ) -> pb.PropertyElement:
+        """Convert our PropertyElement model to protobuf PropertyElement.
+        
+        This allows using our internal PropertyElement structure directly
+        with protobuf messages, avoiding dict conversion overhead.
+        
+        Args:
+            element: PropertyElement model instance
+            
+        Returns:
+            PropertyElement protobuf message
+        """
+        if PropertyElementModel is None:
+            raise ImportError("PropertyElement model not available")
+        
+        pb_elem = pb.PropertyElement()
+        pb_elem.name = element.name
+        
+        # Handle value
+        if element.value is not None:
+            pb_value = pb.PropertyValue()
+            
+            if element.value.v_bool is not None:
+                pb_value.v_bool = element.value.v_bool
+            elif element.value.v_uint64 is not None:
+                pb_value.v_uint64 = element.value.v_uint64
+            elif element.value.v_int64 is not None:
+                pb_value.v_int64 = element.value.v_int64
+            elif element.value.v_double is not None:
+                pb_value.v_double = element.value.v_double
+            elif element.value.v_string is not None:
+                pb_value.v_string = element.value.v_string
+            elif element.value.v_bytes is not None:
+                pb_value.v_bytes = element.value.v_bytes
+            
+            pb_elem.value.CopyFrom(pb_value)
+        
+        # Handle nested elements
+        for child in element.elements:
+            pb_child = self.property_element_model_to_protobuf(child)
+            pb_elem.elements.append(pb_child)
+        
+        return pb_elem
+    
+    def create_response_get_property_from_model(
+        self,
+        properties: List['PropertyElementModel'],
+        message_id: int = 0,
+    ) -> pb.Message:
+        """Create ResponseGetProperty from PropertyElement models.
+        
+        Args:
+            properties: List of PropertyElement model instances
+            message_id: Message ID to match the request
+            
+        Returns:
+            ResponseGetProperty message
+        """
+        msg = pb.Message()
+        msg.type = pb.VDC_RESPONSE_GET_PROPERTY
+        msg.message_id = message_id
+        
+        response = msg.vdc_response_get_property
+        
+        # Build property elements from models
+        for prop_model in properties:
+            prop_elem = self.property_element_model_to_protobuf(prop_model)
+            response.properties.append(prop_elem)
+        
+        _LOGGER.debug(f"Created ResponseGetProperty from models with {len(properties)} properties")
+        return msg
+    
+    def create_push_property_from_model(
+        self,
+        device_dsuid: str,
+        properties: List['PropertyElementModel'],
+    ) -> pb.Message:
+        """Create PushProperty from PropertyElement models.
+        
+        Args:
+            device_dsuid: dSUID of the device
+            properties: List of PropertyElement model instances
+            
+        Returns:
+            PushProperty message
+        """
+        msg = pb.Message()
+        msg.type = pb.VDC_SEND_PUSH_PROPERTY
+        msg.message_id = 0
+        
+        push = msg.vdc_send_push_property
+        push.dSUID = device_dsuid
+        
+        # Build property elements from models
+        for prop_model in properties:
+            prop_elem = self.property_element_model_to_protobuf(prop_model)
+            push.properties.append(prop_elem)
+        
+        _LOGGER.debug(f"Created PushProperty from models for device {device_dsuid}")
+        return msg
 
 
 def create_property_dict(
